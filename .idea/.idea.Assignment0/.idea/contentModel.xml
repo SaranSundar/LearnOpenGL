@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="C:\Users\saran\.Rider2019.3\system\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\saran\.Rider2019.3\system\resharper-host\local\Transient\ReSharperHost\v193\SolutionCaches\_Assignment0.1969963420.00" t="ExcludeRecursive" />
+    <e p="C:\Users\saran\Documents\Assignment0" t="IncludeFlat">
+      <e p="Assignment0" t="IncludeRecursive">
+        <e p="Assignment0.vcxproj" t="IncludeRecursive" />
+        <e p="basic.frag" t="Include" />
+        <e p="basic.vert" t="Include" />
+        <e p="main.cpp" t="Include" />
+        <e p="main_example.cpp" t="Include" />
+        <e p="Shader.h" t="Include" />
+        <e p="x64\Release" t="ExcludeRecursive" />
+      </e>
+      <e p="Assignment0.sln" t="IncludeFlat" />
+      <e p="packages" t="ExcludeRecursive" />
+      <e p="x64\Release" t="ExcludeRecursive" />
+    </e>
+  </component>
+</project>
