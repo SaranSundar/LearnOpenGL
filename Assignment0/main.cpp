@@ -102,9 +102,14 @@ int main() {
 
 	// 3 points for a triangle on a normalized plane from -1 to 1, (x, y, z)
 	float vertices[] = {
-		-0.5f, -0.5f, 0.0f, // left  
-		 0.5f, -0.5f, 0.0f, // right 
-		 0.0f,  0.5f, 0.0f  // top   
+		// first triangle
+		 0.5f,  0.5f, 0.0f,  // top right
+		 0.5f, -0.5f, 0.0f,  // bottom right
+		-0.5f,  0.5f, 0.0f,  // top left 
+		// second triangle
+		 0.5f, -0.5f, 0.0f,  // bottom right
+		-0.5f, -0.5f, 0.0f,  // bottom left
+		-0.5f,  0.5f, 0.0f   // top left
 	};
 
 	// VBO is a list, VAO is a container
@@ -144,7 +149,7 @@ int main() {
 		glUseProgram(shaderProgram);
 		glBindVertexArray(VAO);
 		// draw a triangle with starting index and vertices
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
 
 		// double buffer and input events
