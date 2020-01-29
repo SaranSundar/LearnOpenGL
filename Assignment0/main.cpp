@@ -13,25 +13,26 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
 const char* vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec3 aPos; // the position variable has attribute position 0\n"
+"layout (location = 0) in vec3 aPos;   // the position variable has attribute position 0\n"
+"layout (location = 1) in vec3 aColor; // the color variable has attribute position 1\n"
 "  \n"
-"out vec4 vertexColor; // specify a color output to the fragment shader\n"
+"out vec3 ourColor; // output a color to the fragment shader\n"
 "void main()\n"
 "{\n"
-"    gl_Position = vec4(aPos, 1.0); // see how we directly give a vec3 to vec4's constructor\n"
-"    vertexColor = vec4(0.5, 0.0, 0.0, 1.0); // set the output variable to a dark-red color\n"
-"}\n";
+"    gl_Position = vec4(aPos, 1.0);\n"
+"    ourColor = aColor; // set ourColor to the input color we got from the vertex data\n"
+"}       \n";
 
 
 const char* fragmentShaderSource = "#version 330 core\n"
-"out vec4 FragColor;\n"
+"out vec4 FragColor;  \n"
+"in vec3 ourColor;\n"
 "  \n"
-"uniform vec4 ourColor; // we set this variable in the OpenGL code. \n"
-"in vec4 vertexColor; // the input variable from the vertex shader (same name and same type)  \n"
 "void main()\n"
 "{\n"
-"    FragColor = ourColor;\n"
-"} \n";
+"    FragColor = vec4(ourColor, 1.0);\n"
+"}\n";
+
 
 
 
@@ -108,18 +109,17 @@ int main() {
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
-	// 4 points for a rectangle on a normalized plane from -1 to 1, (x, y, z)
+	// 3 points for a triangle on a normalized plane from -1 to 1, (x, y, z) and the color rgb value for each point
 	float vertices[] = {
-	 0.5f,  0.5f, 0.0f,  // top right
-	 0.5f, -0.5f, 0.0f,  // bottom right
-	-0.5f, -0.5f, 0.0f,  // bottom left
-	-0.5f,  0.5f, 0.0f   // top left 
+		// positions         // colors
+		 0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
+		-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
+		 0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
 	};
 
 	// order of each 3 points above to form 2 triangles
 	unsigned int indices[] = {
-	0, 1, 3,   // first triangle
-	1, 2, 3    // second triangle
+	0, 1, 2,   // first triangle
 	};
 
 	// VBO and EBO is a list, VAO is a container
@@ -141,9 +141,13 @@ int main() {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	// Tells OpenGL how to read the data in VBO and then enables it
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	// Tells OpenGL how to read the position data in VBO and then enables it
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+
+	// Tells OpenGL how to read the color data in VBO and then enables it
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	// glVertexAttribPointer bound VBO to the VAO, so we can unbind the VBO now so we don't modify it
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -173,7 +177,7 @@ int main() {
 		glBindVertexArray(VAO);
 		// draw a rectangle with starting index and vertices
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 		// double buffer and input events
