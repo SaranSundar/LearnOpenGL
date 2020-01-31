@@ -9,29 +9,13 @@
 
 #include "nanogui/nanogui.h"
 
+#include "Shader.h"
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
-const char* vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec3 aPos;   // the position variable has attribute position 0\n"
-"layout (location = 1) in vec3 aColor; // the color variable has attribute position 1\n"
-"  \n"
-"out vec3 ourColor; // output a color to the fragment shader\n"
-"void main()\n"
-"{\n"
-"    gl_Position = vec4(aPos, 1.0);\n"
-"    ourColor = aColor; // set ourColor to the input color we got from the vertex data\n"
-"}       \n";
-
-
-const char* fragmentShaderSource = "#version 330 core\n"
-"out vec4 FragColor;  \n"
-"in vec3 ourColor;\n"
-"  \n"
-"void main()\n"
-"{\n"
-"    FragColor = vec4(ourColor, 1.0);\n"
-"}\n";
+const unsigned int SCREEN_WIDTH = 800;
+const unsigned int SCREEN_HEIGHT = 600;
 
 
 
@@ -44,7 +28,7 @@ int main() {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Creates a window object
-	GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "LearnOpenGL", NULL, NULL);
 	if (window == NULL) {
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
@@ -69,45 +53,8 @@ int main() {
 	// Initialize GLEW to setup the OpenGL Function pointers
 	glewInit();
 
-	// Creates UID for shader, stores the source, then compiles it
-	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	std::cout << vertexShader << std::endl;
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-	// Checks if vertexShader compiled succesfully
-	int success;
-	char infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-
-	// Repeats process above to compile fragment shader
-	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
-	// Checks if fragmentShader succesfully compiled
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-
-	// Creates shader program to link shaders
-	unsigned int shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-	// Checks if shader program linked shaders succesfully
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-	}
-	// Clean up resources we dont need anymore
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
+	// build and compile our shader program
+	Shader shader("shader.vs", "shader.fs");
 
 	// 3 points for a triangle on a normalized plane from -1 to 1, (x, y, z) and the color rgb value for each point
 	float vertices[] = {
@@ -164,20 +111,15 @@ int main() {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// Uses shader, binds and unbinds VAO
-		glUseProgram(shaderProgram);
 
-
-		float timeValue = glfwGetTime();
-		float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
-		int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-		glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-
-
+		// use shader and bind VAO
+		shader.use();
 		glBindVertexArray(VAO);
 		// draw a rectangle with starting index and vertices
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		// 3 vertices to connect
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+		// unbind VAO
 		glBindVertexArray(0);
 
 		// double buffer and input events

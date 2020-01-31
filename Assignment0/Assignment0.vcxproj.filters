@@ -20,15 +20,15 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="basic.frag" />
-    <None Include="basic.vert" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="main_example.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="shader.fs" />
+    <Text Include="shader.vs" />
   </ItemGroup>
 </Project>
