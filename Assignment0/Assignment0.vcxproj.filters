@@ -37,4 +37,9 @@
     <Text Include="shader.fs" />
     <Text Include="shader.vs" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\textures\container.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>

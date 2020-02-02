@@ -31,6 +31,9 @@
     <Text Include="shader.fs" />
     <Text Include="shader.vs" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\textures\container.jpg" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{3E2B4B19-080E-43D7-868D-906954706740}</ProjectGuid>
