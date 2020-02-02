@@ -33,6 +33,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\textures\container.jpg" />
+    <Image Include="resources\textures\smiley.png" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

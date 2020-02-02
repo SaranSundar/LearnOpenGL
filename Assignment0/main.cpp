@@ -110,18 +110,20 @@ int main() {
 
 	//------------------
 	// load and create a texture
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	unsigned int texture1, texture2;
+	glGenTextures(1, &texture1);
+	glBindTexture(GL_TEXTURE_2D, texture1);
 
-	// Sets the texturee wrap for x,y,z
+	// Sets the texture wrap for x,y,z
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	
 	// set texture filtering parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	
+
+	// tell stb_image.h to flip loaded texture's on the y-axis.
+	stbi_set_flip_vertically_on_load(true);
 	// load image, create texture, and generate mipmaps
 	int width, height, numChannels;
 	unsigned char* data = stbi_load("resources/textures/container.jpg", &width, &height, &numChannels, 0);
@@ -134,6 +136,35 @@ int main() {
 	}
 	stbi_image_free(data);
 
+	glGenTextures(1, &texture2);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+
+	// Sets the texture wrap for x,y,z
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	// set texture filtering parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// load image, create texture, and generate mipmaps
+	data = stbi_load("resources/textures/smiley.png", &width, &height, &numChannels, 0);
+	if (data) {
+		// note that the awesomeface.png has transparency and thus an alpha channel, so make sure to tell OpenGL the data type is of GL_RGBA
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else {
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
+
+	// tell OpenGL for each sampler which texture unit it belongs to
+	shader.use();
+	shader.setInt("texture1", 0);
+	shader.setInt("texture2", 1);
+
+
 	// Game Loop
 	while (!glfwWindowShouldClose(window)) {
 		// get input
@@ -143,8 +174,11 @@ int main() {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// bind Texture
-		glBindTexture(GL_TEXTURE_2D, texture);
+		// activate and bind textures per unit
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
 
 		// use shader and bind VAO
 		shader.use();
