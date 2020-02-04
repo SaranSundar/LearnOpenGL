@@ -12,6 +12,7 @@
 #include <stb_image.h>
 
 #include "Shader.h"
+#include "Model.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -166,6 +167,10 @@ int main() {
 
 	// build and compile our shader program
 	Shader shader("shader.vs", "shader.fs");
+
+	Model model;
+	model.load_obj("resources/objects/cube.obj");
+
 
 	// Game Loop
 	while (!glfwWindowShouldClose(window)) {

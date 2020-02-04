@@ -10,8 +10,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-
-
 	Shader::Shader(const char* vertexPath, const char* fragmentPath) {
 		std::string vertexCode;
 		std::string fragmentCode;
