@@ -260,9 +260,8 @@ int main() {
 		if (renderType == 0) {
 			glEnable(GL_PROGRAM_POINT_SIZE);
 			glPointSize(5.0);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_POINTS);
 			glDrawArrays(GL_POINTS, 0, model->vertices.size());
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			glDrawArrays(GL_TRIANGLES, 0, model->vertices.size());
 		}
 		else if (renderType == 1) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
