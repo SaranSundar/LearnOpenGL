@@ -27,9 +27,12 @@ void mouse_button_callback(GLFWwindow*, int button, int action, int modifiers);
 void key_callback(GLFWwindow*, int key, int scancode, int action, int mods);
 void char_callback(GLFWwindow*, unsigned int codepoint);
 void drop_callback(GLFWwindow*, int count, const char** filenames);
+void load_model(const char* pathName);
 
 const unsigned int SCREEN_WIDTH = 1200;
 const unsigned int SCREEN_HEIGHT = 900;
+
+unsigned int VBO, VAO;
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -60,9 +63,11 @@ enum test_enum {
 };
 test_enum renderType = test_enum::Item2;
 test_enum cullingType = test_enum::Item1;
-std::string modelName = "A string";
+std::string modelName = "cube.obj";
 
 Screen* screen = nullptr;
+
+Model* model = nullptr;
 
 int main() {
 	// Initialize GLFW to version 3.3
@@ -104,6 +109,16 @@ int main() {
 
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
+
+	// Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
+	glewExperimental = GL_TRUE;
+	// Initialize GLEW to setup the OpenGL Function pointers
+	glewInit();
+
+	model = new Model();
+
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
 
 	// Create a nanogui screen and pass the glfw pointer to initialize
 	screen = new Screen();
@@ -158,6 +173,8 @@ int main() {
 	gui->addButton("Reload model", []() {
 		//TODO
 		std::cout << "Reload Model" << std::endl;
+		std::string pathName = "resources/objects/" + modelName;
+		load_model(pathName.c_str());
 		});
 	gui->addButton("Reset Camera", []() {
 		//TODO
@@ -169,38 +186,12 @@ int main() {
 
 	//End of nanogui gui
 
-	// Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
-	glewExperimental = GL_TRUE;
-	// Initialize GLEW to setup the OpenGL Function pointers
-	glewInit();
-
 	glEnable(GL_DEPTH_TEST);
 
 	// build and compile our shader program
 	Shader shader("shader.vs", "shader.fs");
 
-	Model model;
-	model.load_obj("resources/objects/cyborg.obj");
-
-	unsigned int VBO, VAO;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-	glBindVertexArray(VAO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, model.vertices.size() * sizeof(Model::Vertex), &model.vertices.front(), GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Model::Vertex), (GLvoid*)offsetof(Model::Vertex, Position));
-	glEnableVertexAttribArray(0);
-
-	// note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	// You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-	// VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-	glBindVertexArray(0);
-
+	load_model("resources/objects/cube.obj");
 
 	// Game Loop
 	while (!glfwWindowShouldClose(window)) {
@@ -213,17 +204,21 @@ int main() {
 		// get input
 		processInput(window);
 
+		// Translates camera from gui input
+		camera.TranslateCamera(cameraX, cameraY, cameraZ, 1.0, 0, 0);
+
 		// render events
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glEnable(GL_DEPTH_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		shader.use();
-		shader.setVec3("ourColor", 1.0, 0.0, 0.0);
+		shader.setVec3("ourColor", colval.r(), colval.g(), colval.b());
 
 		// pass projection matrix to shader (note that in this case it could change every frame)
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
 		shader.setMatrix("projection", projection);
+
 
 		// camera/view transformation
 		glm::mat4 view = camera.GetViewMatrix();
@@ -237,7 +232,7 @@ int main() {
 		modelObj = glm::translate(modelObj, glm::vec3(0.0f, 0.0f, 0.0f));
 		shader.setMatrix("model", modelObj);
 		
-		glDrawArrays(GL_TRIANGLES, 0, model.vertices.size());
+		glDrawArrays(GL_TRIANGLES, 0, model->vertices.size());
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		// Draws GUI
@@ -254,18 +249,30 @@ int main() {
 	return 0;
 }
 
+void load_model(const char* pathName) {
+	model->load_obj(pathName);
+
+	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
+	glBindVertexArray(VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, model->vertices.size() * sizeof(Model::Vertex), &(model->vertices.front()), GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Model::Vertex), (GLvoid*)offsetof(Model::Vertex, Position));
+	glEnableVertexAttribArray(0);
+
+	// note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
+	// VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
+	glBindVertexArray(0);
+}
+
 void processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera.ProcessKeyboard(FORWARD, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.ProcessKeyboard(BACKWARD, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera.ProcessKeyboard(LEFT, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
 void key_callback(GLFWwindow*, int key, int scancode, int action, int mods) {
@@ -282,6 +289,8 @@ void drop_callback(GLFWwindow*, int count, const char** filenames) {
 
 void mouse_button_callback(GLFWwindow*, int button, int action, int modifiers) {
 	screen->mouseButtonCallbackEvent(button, action, modifiers);
+	//camera.TranslateCamera(cameraX, cameraY, cameraZ); //Upon click, camera is translated according to numbers inputted in the GUI.
+
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -294,20 +303,20 @@ void mouse_cursor_callback(GLFWwindow* window, double xpos, double ypos)
 {
 	screen->cursorPosCallbackEvent(xpos, ypos);
 
-	if (firstMouse)
-	{
-		lastX = xpos;
-		lastY = ypos;
-		firstMouse = false;
-	}
+	//if (firstMouse)
+	//{
+	//	lastX = xpos;
+	//	lastY = ypos;
+	//	firstMouse = false;
+	//}
 
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+	//float xoffset = xpos - lastX;
+	//float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
 
-	lastX = xpos;
-	lastY = ypos;
+	//lastX = xpos;
+	//lastY = ypos;
 
-	camera.ProcessMouseMovement(xoffset, yoffset);
+	//camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
@@ -316,5 +325,7 @@ void mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	screen->scrollCallbackEvent(xoffset, yoffset);
 
-	camera.ProcessMouseScroll(yoffset);
+	//camera.ProcessMouseScroll(yoffset);
+	//camera.TranslateCamera(cameraX, cameraY, cameraZ); //Upon scroll, camera is translated according to numbers inputted in the GUI.
+
 }
