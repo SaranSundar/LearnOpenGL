@@ -22,6 +22,7 @@ public:
 		std::vector<Vertex> vertices;
 	}
 	std::vector<Vertex> vertices;
+	float minY = 0.0f, maxY = 0.0f, minZ = 0.0f, maxZ = 0.0f;
 	void load_obj(std::string obj_path);
 };
 

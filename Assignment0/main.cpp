@@ -73,6 +73,8 @@ Screen* screen = nullptr;
 
 Model* model = nullptr;
 
+FormHelper* gui = nullptr;
+
 int main() {
 	// Initialize GLFW to version 3.3
 	glfwInit();
@@ -130,7 +132,7 @@ int main() {
 
 	// Create nanogui gui
 	bool enabled = true;
-	FormHelper* gui = new FormHelper(screen);
+	gui = new FormHelper(screen);
 	ref<Window> nanoguiWindow = gui->addWindow(Eigen::Vector2i(10, 10), "Controls");
 	gui->addGroup("Color");
 	gui->addVariable("Object Color:", colval);
@@ -289,6 +291,10 @@ int main() {
 
 void load_model(const char* pathName) {
 	model->load_obj(pathName);
+
+	cameraZ = model->maxZ / 2;
+	cameraY = model->maxY / 2;
+	gui->refresh();
 
 	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
 	glBindVertexArray(VAO);
