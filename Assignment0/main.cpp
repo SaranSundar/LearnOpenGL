@@ -48,14 +48,18 @@ float lastFrame = 0.0f;
 //GUI stuff
 using namespace nanogui;
 Color colval(0.5f, 0.5f, 0.7f, 1.f);
-float cameraX = 0;
-float cameraY = 0;
-float cameraZ = 0;
+float cameraX = 0.0f;
+float cameraY = 0.0f;
+float cameraZ = 0.0f;
 
-float rotateValue = 0;
+float rotateValue = 0.0f;
 
-float zNear = 0;
-float zFar = 0;
+float zNear = 0.0f;
+float zFar = 0.0f;
+
+float rotateRight = 0.0f;
+float rotateFront = 0.0f;
+float rotateUp = 0.0f;
 enum test_enum {
 	Item1,
 	Item2,
@@ -141,27 +145,33 @@ int main() {
 	gui->addButton("Rotate right+", []() {
 		//TODO
 		std::cout << "Rotate right+" << std::endl;
+		rotateRight += rotateValue;
 		});
 	gui->addButton("Rotate right-", []() {
 		//TODO
 		std::cout << "Rotate right-" << std::endl;
+		rotateRight -= rotateValue;
 		});
 
 	gui->addButton("Rotate up+", []() {
 		//TODO
 		std::cout << "Rotate up+" << std::endl;
+		rotateUp += rotateValue;
 		});
 	gui->addButton("Rotate up-", []() {
 		//TODO
 		std::cout << "Rotate up-" << std::endl;
+		rotateUp -= rotateValue;
 		});
 	gui->addButton("Rotate front+", []() {
 		//TODO
 		std::cout << "Rotate front+" << std::endl;
+		rotateFront += rotateValue;
 		});
 	gui->addButton("Rotate front-", []() {
 		//TODO
 		std::cout << "Rotate front-" << std::endl;
+		rotateFront -= rotateValue;
 		});
 
 	gui->addGroup("Configuration");
@@ -191,7 +201,7 @@ int main() {
 	// build and compile our shader program
 	Shader shader("shader.vs", "shader.fs");
 
-	load_model("resources/objects/cube.obj");
+	load_model("resources/objects/cyborg.obj");
 
 	// Game Loop
 	while (!glfwWindowShouldClose(window)) {
@@ -205,7 +215,10 @@ int main() {
 		processInput(window);
 
 		// Translates camera from gui input
-		camera.TranslateCamera(cameraX, cameraY, cameraZ, 1.0, 0, 0);
+		// Yaw is turn head left and right
+		// Pitch is turn hed up and down
+		// Roll is plane doing barrel roll
+		camera.TranslateCamera(cameraX, cameraY, cameraZ, rotateFront, rotateRight, rotateUp);
 
 		// render events
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -224,6 +237,7 @@ int main() {
 		glm::mat4 view = camera.GetViewMatrix();
 		shader.setMatrix("view", view);
 
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 		glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
@@ -231,9 +245,33 @@ int main() {
 		glm::mat4 modelObj = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
 		modelObj = glm::translate(modelObj, glm::vec3(0.0f, 0.0f, 0.0f));
 		shader.setMatrix("model", modelObj);
-		
-		glDrawArrays(GL_TRIANGLES, 0, model->vertices.size());
 
+		if (cullingType == 0) {
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_FRONT);
+		}
+		else {
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_BACK);
+		}
+		
+		if (renderType == 0) {
+			glEnable(GL_PROGRAM_POINT_SIZE);
+			glPointSize(5.0);
+			glDrawArrays(GL_POINTS, 0, model->vertices.size());
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			glDrawArrays(GL_TRIANGLES, 0, model->vertices.size());
+		}
+		else if (renderType == 1) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			glDrawArrays(GL_TRIANGLES, 0, model->vertices.size());
+		}
+		else if (renderType == 2) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			glDrawArrays(GL_TRIANGLES, 0, model->vertices.size());
+		}
+
+		// Screen GUI
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		// Draws GUI
 		screen->drawWidgets();

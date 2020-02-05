@@ -36,8 +36,10 @@ public:
     // Euler Angles
     float Yaw;
     float Pitch;
-    float offsetYaw = 0;
-    float offsetPitch = 0;
+    float Roll;
+    float offsetYaw = 0.0f;
+    float offsetPitch = 0.0f;
+    float offsetRoll = 0.0f;
     // Camera options
     float MovementSpeed;
     float MouseSensitivity;
@@ -50,6 +52,7 @@ public:
         Origin = position;
         WorldUp = up;
         Yaw = yaw;
+        Roll = 0.0f;
         Pitch = pitch;
         updateCameraVectors();
     }
@@ -60,6 +63,7 @@ public:
         Origin = Position;
         WorldUp = glm::vec3(upX, upY, upZ);
         Yaw = yaw;
+        Roll = 0.0f;
         Pitch = pitch;
         updateCameraVectors();
     }
@@ -75,6 +79,7 @@ public:
 
         offsetYaw = rX;
         offsetPitch = rY;
+        offsetRoll = rZ;
 
         // Make sure that when pitch is out of bounds, screen doesn't get flipped
         if (constrainPitch)
@@ -95,9 +100,10 @@ private:
     {
         // Calculate the new Front vector
         glm::vec3 front;
-        front.x = cos(glm::radians(Yaw +  offsetYaw)) * cos(glm::radians(Pitch + offsetPitch));
-        front.y = sin(glm::radians(Pitch +  offsetPitch));
-        front.z = sin(glm::radians(Yaw + offsetYaw)) * cos(glm::radians(Pitch +  offsetPitch));
+        front.x = cos(glm::radians(Yaw + offsetYaw)) * cos(glm::radians(Pitch + offsetPitch));
+        front.y = sin(glm::radians(Pitch + offsetPitch));
+        front.z = sin(glm::radians(Yaw + offsetYaw)) * cos(glm::radians(Pitch + offsetPitch));
+
         Front = glm::normalize(front);
         // Also re-calculate the Right and Up vector
         Right = glm::normalize(glm::cross(Front, WorldUp));  // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
