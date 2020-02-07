@@ -35,7 +35,7 @@ const unsigned int SCREEN_HEIGHT = 900;
 unsigned int VBO, VAO;
 
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera* camera = nullptr;
 float lastX = SCREEN_WIDTH / 2.0f;
 float lastY = SCREEN_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -52,10 +52,10 @@ float cameraX = 0.0f;
 float cameraY = 0.0f;
 float cameraZ = 0.0f;
 
-float rotateValue = 0.0f;
+float rotateValue = 5.0f;
 
-float zNear = 0.0f;
-float zFar = 0.0f;
+float zNear = 0.1f;
+float zFar = 10.0f;
 
 float rotateRight = 0.0f;
 float rotateFront = 0.0f;
@@ -66,8 +66,8 @@ enum test_enum {
 	Item3
 };
 test_enum renderType = test_enum::Item2;
-test_enum cullingType = test_enum::Item1;
-std::string modelName = "cube.obj";
+test_enum cullingType = test_enum::Item2;
+std::string modelName = "cyborg.obj";
 
 Screen* screen = nullptr;
 
@@ -122,6 +122,7 @@ int main() {
 	glewInit();
 
 	model = new Model();
+	camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -191,6 +192,20 @@ int main() {
 	gui->addButton("Reset Camera", []() {
 		//TODO
 		std::cout << "Reset Camera" << std::endl;
+		camera = nullptr;
+		camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+		cameraX = 0.0f;
+		cameraY = 0.0f;
+		cameraZ = 0.0f;
+		cameraZ = 3;
+		cameraY = (model->maxY + model->minY) / 2;
+		rotateValue = 5.0f;
+		rotateRight = 0.0f;
+		rotateFront = 0.0f;
+		rotateUp = 0.0f;
+		zNear = 0.1f;
+		zFar = 10.0f;
+		gui->refresh();
 		});
 
 	screen->setVisible(true);
@@ -220,7 +235,7 @@ int main() {
 		// Yaw is turn head left and right
 		// Pitch is turn hed up and down
 		// Roll is plane doing barrel roll
-		camera.TranslateCamera(cameraX, cameraY, cameraZ, rotateFront, rotateRight, rotateUp);
+		camera->TranslateCamera(cameraX, cameraY, cameraZ, rotateRight, rotateUp, rotateFront);
 
 		// render events
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -231,12 +246,12 @@ int main() {
 		shader.setVec3("ourColor", colval.r(), colval.g(), colval.b());
 
 		// pass projection matrix to shader (note that in this case it could change every frame)
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, zNear, zFar);
 		shader.setMatrix("projection", projection);
 
 
 		// camera/view transformation
-		glm::mat4 view = camera.GetViewMatrix();
+		glm::mat4 view = camera->GetViewMatrix();
 		shader.setMatrix("view", view);
 
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
@@ -291,8 +306,9 @@ int main() {
 void load_model(const char* pathName) {
 	model->load_obj(pathName);
 
-	cameraZ = model->maxZ / 2;
-	cameraY = model->maxY / 2;
+	cameraZ = 3;
+	cameraY = (model->maxY + model->minY) / 2;
+	cullingType = test_enum::Item2;
 	gui->refresh();
 
 	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
@@ -332,8 +348,6 @@ void drop_callback(GLFWwindow*, int count, const char** filenames) {
 
 void mouse_button_callback(GLFWwindow*, int button, int action, int modifiers) {
 	screen->mouseButtonCallbackEvent(button, action, modifiers);
-	//camera.TranslateCamera(cameraX, cameraY, cameraZ); //Upon click, camera is translated according to numbers inputted in the GUI.
-
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -346,20 +360,6 @@ void mouse_cursor_callback(GLFWwindow* window, double xpos, double ypos)
 {
 	screen->cursorPosCallbackEvent(xpos, ypos);
 
-	//if (firstMouse)
-	//{
-	//	lastX = xpos;
-	//	lastY = ypos;
-	//	firstMouse = false;
-	//}
-
-	//float xoffset = xpos - lastX;
-	//float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
-	//lastX = xpos;
-	//lastY = ypos;
-
-	//camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
@@ -367,8 +367,4 @@ void mouse_cursor_callback(GLFWwindow* window, double xpos, double ypos)
 void mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	screen->scrollCallbackEvent(xoffset, yoffset);
-
-	//camera.ProcessMouseScroll(yoffset);
-	//camera.TranslateCamera(cameraX, cameraY, cameraZ); //Upon scroll, camera is translated according to numbers inputted in the GUI.
-
 }

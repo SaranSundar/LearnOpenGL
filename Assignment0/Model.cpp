@@ -15,6 +15,8 @@ void Model::load_obj(std::string obj_path) {
 	maxZ = -10000;
 	minY = 10000;
 	maxY = -10000;
+	minX = 10000;
+	maxX = -10000;
 	std::vector<glm::vec3> positions;
 	std::vector<glm::vec3> normals;
 	std::vector<glm::vec2> tex_coods;
@@ -101,6 +103,26 @@ void Model::load_obj(std::string obj_path) {
 				}
 				if (vertex_2.Position.z < minZ) {
 					minZ = vertex_2.Position.z;
+				}
+
+				if (vertex_0.Position.x < minX) {
+					minX = vertex_0.Position.x;
+				}
+				if (vertex_1.Position.x < minX) {
+					minX = vertex_1.Position.x;
+				}
+				if (vertex_2.Position.x < minX) {
+					minX = vertex_2.Position.x;
+				}
+
+				if (vertex_0.Position.x > maxX) {
+					maxX = vertex_0.Position.x;
+				}
+				if (vertex_1.Position.x > maxX) {
+					maxX = vertex_1.Position.x;
+				}
+				if (vertex_2.Position.x > maxX) {
+					maxX = vertex_2.Position.x;
 				}
 
 				vertices.push_back(vertex_0);
