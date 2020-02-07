@@ -36,13 +36,6 @@ unsigned int VBO, VAO;
 
 // camera
 Camera* camera = nullptr;
-float lastX = SCREEN_WIDTH / 2.0f;
-float lastY = SCREEN_HEIGHT / 2.0f;
-bool firstMouse = true;
-
-// timing
-float deltaTime = 0.0f;	// time between current frame and last frame
-float lastFrame = 0.0f;
 
 
 //GUI stuff
@@ -109,10 +102,6 @@ int main() {
 	glfwSetCharCallback(window, char_callback);
 	glfwSetDropCallback(window, drop_callback);
 
-	// tell GLFW to capture our mouse
-	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -146,33 +135,27 @@ int main() {
 	gui->addGroup("Rotate");
 	gui->addVariable("Rotate Value", rotateValue)->setSpinnable(true);
 	gui->addButton("Rotate right+", []() {
-		//TODO
 		std::cout << "Rotate right+" << std::endl;
 		rotateRight += rotateValue;
 		});
 	gui->addButton("Rotate right-", []() {
-		//TODO
 		std::cout << "Rotate right-" << std::endl;
 		rotateRight -= rotateValue;
 		});
 
 	gui->addButton("Rotate up+", []() {
-		//TODO
 		std::cout << "Rotate up+" << std::endl;
 		rotateUp += rotateValue;
 		});
 	gui->addButton("Rotate up-", []() {
-		//TODO
 		std::cout << "Rotate up-" << std::endl;
 		rotateUp -= rotateValue;
 		});
 	gui->addButton("Rotate front+", []() {
-		//TODO
 		std::cout << "Rotate front+" << std::endl;
 		rotateFront += rotateValue;
 		});
 	gui->addButton("Rotate front-", []() {
-		//TODO
 		std::cout << "Rotate front-" << std::endl;
 		rotateFront -= rotateValue;
 		});
@@ -184,13 +167,11 @@ int main() {
 	gui->addVariable("Culling Type", cullingType, enabled)->setItems({ "CW", "CCW" });
 	gui->addVariable("Model Name", modelName);
 	gui->addButton("Reload model", []() {
-		//TODO
 		std::cout << "Reload Model" << std::endl;
 		std::string pathName = "resources/objects/" + modelName;
 		load_model(pathName.c_str());
 		});
 	gui->addButton("Reset Camera", []() {
-		//TODO
 		std::cout << "Reset Camera" << std::endl;
 		camera = nullptr;
 		camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -222,11 +203,6 @@ int main() {
 
 	// Game Loop
 	while (!glfwWindowShouldClose(window)) {
-		// per-frame time logic
-		// --------------------
-		float currentFrame = glfwGetTime();
-		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
 
 		// get input
 		processInput(window);
@@ -245,7 +221,7 @@ int main() {
 		shader.use();
 		shader.setVec3("ourColor", colval.r(), colval.g(), colval.b());
 
-		// pass projection matrix to shader (note that in this case it could change every frame)
+		// pass projection matrix to shader 
 		glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, zNear, zFar);
 		shader.setMatrix("projection", projection);
 
@@ -254,12 +230,10 @@ int main() {
 		glm::mat4 view = camera->GetViewMatrix();
 		shader.setMatrix("view", view);
 
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-		glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
-		
-		glm::mat4 modelObj = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+		glBindVertexArray(VAO); 
+		glm::mat4 modelObj = glm::mat4(1.0f);
 		modelObj = glm::translate(modelObj, glm::vec3(0.0f, 0.0f, 0.0f));
 		shader.setMatrix("model", modelObj);
 
@@ -311,7 +285,6 @@ void load_model(const char* pathName) {
 	cullingType = test_enum::Item2;
 	gui->refresh();
 
-	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
 	glBindVertexArray(VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -320,11 +293,8 @@ void load_model(const char* pathName) {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Model::Vertex), (GLvoid*)offsetof(Model::Vertex, Position));
 	glEnableVertexAttribArray(0);
 
-	// note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	// You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-	// VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
 	glBindVertexArray(0);
 }
 
@@ -351,7 +321,6 @@ void mouse_button_callback(GLFWwindow*, int button, int action, int modifiers) {
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-	// Resizes the window
 	glViewport(0, 0, width, height);
 	screen->resizeCallbackEvent(width, height);
 }
@@ -362,8 +331,6 @@ void mouse_cursor_callback(GLFWwindow* window, double xpos, double ypos)
 
 }
 
-// glfw: whenever the mouse scroll wheel scrolls, this callback is called
-// ----------------------------------------------------------------------
 void mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	screen->scrollCallbackEvent(xoffset, yoffset);
