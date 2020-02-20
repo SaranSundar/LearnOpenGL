@@ -48,13 +48,13 @@ float cameraZ = 0.0f;
 Color objCol(1.0f, 1.0f, 1.0f, 1.0f);
 int objShine = 16;
 bool dLightStatus = false;
-Color dLightAmbientCol(0.0f, 0.0f, 0.0f, 1.0f);
-Color dLightDiffuseCol(0.0f, 0.0f, 0.0f, 1.0f);
-Color dLightSpecularCol(0.0f, 0.0f, 0.0f, 1.0f);
+Color dLightAmbientCol(1.0f, 1.0f, 1.0f, 1.0f);
+Color dLightDiffuseCol(1.0f, 1.0f, 1.0f, 1.0f);
+Color dLightSpecularCol(1.0f, 1.0f, 1.0f, 1.0f);
 bool pLightStatus = false;
-Color pLightAmbientCol(0.0f, 0.0f, 0.0f, 1.0f);
-Color pLightDiffuseCol(0.0f, 0.0f, 0.0f, 1.0f);
-Color pLightSpecularCol(0.0f, 0.0f, 0.0f, 1.0f);
+Color pLightAmbientCol(1.0f, 1.0f, 1.0f, 1.0f);
+Color pLightDiffuseCol(1.0f, 1.0f, 1.0f, 1.0f);
+Color pLightSpecularCol(1.0f, 1.0f, 1.0f, 1.0f);
 bool pLightRotateX = false;
 bool pLightRotateY = false;
 bool pLightRotateZ = false;
@@ -295,6 +295,11 @@ int main() {
 		shader.setVec3("ourColor", colval.r(), colval.g(), colval.b());
 		shader.setInt("objectShine", objShine);
 		shader.setVec3("viewPos", camera->Position);
+		std::cout << "-------" << std::endl;
+		std::cout << pLightAmbientCol.r() << std::endl;
+		std::cout << pLightAmbientCol.g() << std::endl;
+		std::cout << pLightAmbientCol.b() << std::endl;
+		std::cout << "-------" << std::endl;
 
 		if (pLightStatus) {
 			shader.setVec3("pointLight.position", positionalLight);
@@ -324,39 +329,36 @@ int main() {
 		shader.setMat4("projection", projection);
 		shader.setMat4("view", view);
 
-		// Sets culling mode for model
-		if (cullingType == 0) {
-			glFrontFace(GL_CW); // Renders CW
-		}
-		else {
-			glFrontFace(GL_CCW); // Renders CCW
-		}
 
-		// Sets render mode
-		if (renderType == 0) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_POINT); // Render as points
-		}
-		else if (renderType == 1) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Render as lines
-		}
-		else if (renderType == 2) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Render as triangles
-		}
-		else {
-			std::cout << "Invalid render mode" << std::endl;
-		}
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-		glBindVertexArray(VAO); //Binds VAO
-		glm::mat4 modelObj = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+		glBindVertexArray(VAO);
+		glm::mat4 modelObj = glm::mat4(1.0f);
 		modelObj = glm::translate(modelObj, glm::vec3(0.0f, 0.0f, 0.0f));
 		shader.setMatrix("model", modelObj);
 
-		// Sets render mode
-		if (renderType == 0) {
-			glDrawArrays(GL_POINTS, 0, model->vertices.size()); // Render as points
+		if (cullingType == 0) {
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_FRONT);
 		}
 		else {
-			glDrawArrays(GL_TRIANGLES, 0, model->vertices.size()); // Render as lines
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_BACK);
+		}
+
+		if (renderType == 0) {
+			glEnable(GL_PROGRAM_POINT_SIZE);
+			glPointSize(5.0);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_POINTS);
+			glDrawArrays(GL_POINTS, 0, model->vertices.size());
+		}
+		else if (renderType == 1) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			glDrawArrays(GL_TRIANGLES, 0, model->vertices.size());
+		}
+		else if (renderType == 2) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			glDrawArrays(GL_TRIANGLES, 0, model->vertices.size());
 		}
 
 		// Render's the light.
@@ -396,8 +398,10 @@ void load_model(const char* pathName) {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Model::Vertex), (GLvoid*)offsetof(Model::Vertex, Position));
 	glEnableVertexAttribArray(0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Model::Vertex), (GLvoid*)offsetof(Model::Vertex, Position));
+	glEnableVertexAttribArray(1);
 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 }
 

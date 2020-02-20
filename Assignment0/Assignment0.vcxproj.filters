@@ -41,6 +41,7 @@
     <Object Include="resources\objects\cube.obj" />
     <Object Include="resources\objects\cyborg.obj" />
     <Object Include="resources\objects\rock.obj" />
+    <Object Include="resources\objects\two_cubes.obj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="lighting.fs" />
