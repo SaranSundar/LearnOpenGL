@@ -29,9 +29,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -44,5 +41,9 @@
     <Object Include="resources\objects\cube.obj" />
     <Object Include="resources\objects\cyborg.obj" />
     <Object Include="resources\objects\rock.obj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="lighting.fs" />
+    <None Include="lighting.vs" />
   </ItemGroup>
 </Project>

@@ -1,29 +1,15 @@
 ﻿  main.cpp
-C:\Users\saran\Documents\Assignment0\Assignment0\main.cpp(253,53): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-C:\Users\saran\Documents\Assignment0\Assignment0\main.cpp(257,56): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-C:\Users\saran\Documents\Assignment0\Assignment0\main.cpp(261,56): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\saran\Documents\Assignment0\Assignment0\main.cpp(272,30): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\saran\Documents\Assignment0\Assignment0\main.cpp(274,31): warning C4305: '+=': truncation from 'double' to 'float'
+C:\Users\saran\Documents\Assignment0\Assignment0\main.cpp(277,31): warning C4305: '+=': truncation from 'double' to 'float'
+C:\Users\saran\Documents\Assignment0\Assignment0\main.cpp(280,31): warning C4305: '+=': truncation from 'double' to 'float'
+C:\Users\saran\Documents\Assignment0\Assignment0\main.cpp(356,53): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\saran\Documents\Assignment0\Assignment0\main.cpp(359,56): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
 LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
-  40 of 1768 functions ( 2.3%) were compiled, the rest were copied from previous compilation.
+  1 of 2130 functions (<0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    1 functions had inline decision re-evaluated but remain unchanged
+    0 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
-LINK : warning LNK4286: symbol '__glewLinkProgram' defined in 'glew32s.lib(glew.obj)' is imported by 'Shader.obj'
-LINK : warning LNK4286: symbol '__glewDeleteShader' defined in 'glew32s.lib(glew.obj)' is imported by 'Shader.obj'
-LINK : warning LNK4286: symbol '__glewUniform3f' defined in 'glew32s.lib(glew.obj)' is imported by 'Shader.obj'
-LINK : warning LNK4286: symbol '__glewGetProgramInfoLog' defined in 'glew32s.lib(glew.obj)' is imported by 'Shader.obj'
-LINK : warning LNK4286: symbol '__glewUniformMatrix4fv' defined in 'glew32s.lib(glew.obj)' is imported by 'Shader.obj'
-LINK : warning LNK4286: symbol '__glewShaderSource' defined in 'glew32s.lib(glew.obj)' is imported by 'Shader.obj'
-LINK : warning LNK4286: symbol '__glewAttachShader' defined in 'glew32s.lib(glew.obj)' is imported by 'Shader.obj'
-LINK : warning LNK4286: symbol '__glewGetUniformLocation' defined in 'glew32s.lib(glew.obj)' is imported by 'Shader.obj'
-LINK : warning LNK4286: symbol '__glewUniform1f' defined in 'glew32s.lib(glew.obj)' is imported by 'Shader.obj'
-LINK : warning LNK4286: symbol '__glewGetProgramiv' defined in 'glew32s.lib(glew.obj)' is imported by 'Shader.obj'
-LINK : warning LNK4286: symbol '__glewGetShaderInfoLog' defined in 'glew32s.lib(glew.obj)' is imported by 'Shader.obj'
-LINK : warning LNK4286: symbol '__glewUniform1i' defined in 'glew32s.lib(glew.obj)' is imported by 'Shader.obj'
-LINK : warning LNK4286: symbol '__glewCreateProgram' defined in 'glew32s.lib(glew.obj)' is imported by 'Shader.obj'
-LINK : warning LNK4286: symbol '__glewCreateShader' defined in 'glew32s.lib(glew.obj)' is imported by 'Shader.obj'
-LINK : warning LNK4286: symbol '__glewCompileShader' defined in 'glew32s.lib(glew.obj)' is imported by 'Shader.obj'
-LINK : warning LNK4286: symbol '__glewGetShaderiv' defined in 'glew32s.lib(glew.obj)' is imported by 'Shader.obj'
-LINK : warning LNK4286: symbol '__glewUseProgram' defined in 'glew32s.lib(glew.obj)' is imported by 'Shader.obj'
 glew32s.lib(glew.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'glew32s.lib(glew.obj)' or at 'C:\Users\saran\Documents\Assignment0\x64\Release\vc120.pdb'; linking object as if no debug info
   Assignment0.vcxproj -> C:\Users\saran\Documents\Assignment0\x64\Release\Assignment0.exe
