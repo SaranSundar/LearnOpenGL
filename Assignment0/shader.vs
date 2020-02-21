@@ -1,65 +1,31 @@
 #version 330 core
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aNormal;
 
-layout (location = 0) in vec3 position;
-layout (location = 1) in vec3 normal;
+flat out vec3 fFragPos;
+flat out vec3 fNormal;
+smooth out vec3 sFragPos;
+smooth out vec3 sNormal;
+out vec3 LightPos;
 
-uniform vec3 dCol;
-uniform vec3 aCol;
-uniform vec3 sCol;
-uniform vec3 static_dCol;
-uniform vec3 static_aCol;
-uniform vec3 static_sCol;
+uniform vec3 lightPos; // we now define the uniform in the vertex shader and pass the 'view space' lightpos to the fragment shader. lightPos is currently in world space.
+uniform bool applySmoothing;
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
 
-out vec3 diffuseColor;
-out vec3 ambColor;
-out vec3 specColor; 
-out vec3 staticDiffuseColor;
-out vec3 staticAmbColor;
-out vec3 staticSpecColor; 
-
-
-// Values that stay constant for the whole mesh.
-uniform mat4 MVP;
-uniform mat4 V;
-uniform mat4 M;
-uniform mat4 P;
-uniform vec3 lightPosWorldSpace;
-
-
-out vec3 Position_worldspace;
-out vec3 normalCameraSpace;
-flat out vec3 flat_Normal_cameraspace;
-out vec3 viewDirerctionCameraspace;
-out vec3 lightDirectionCameraspace;
-
-flat out vec3 fColor;
-
-
-void main(){
-	Position_worldspace = (M * vec4(position,1)).xyz;
-
-
-
-	vec3 vertexPosition_cameraspace = ( V * M * vec4(position,1)).xyz;
-	viewDirerctionCameraspace = vec3(0,0,0) - vertexPosition_cameraspace;
-
-
-	vec3 LightPosition_cameraspace = ( V * vec4(lightPosWorldSpace,1)).xyz;
-	lightDirectionCameraspace = LightPosition_cameraspace + viewDirerctionCameraspace;
-
-
-	normalCameraSpace = vec3( V * M * vec4(normal,0)); 
-	flat_Normal_cameraspace = normalCameraSpace;
-
-
-
-	diffuseColor = dCol;
-	ambColor = aCol;
-	specColor = sCol;	
-	staticDiffuseColor = static_dCol;
-	staticAmbColor = static_aCol;
-	staticSpecColor = static_sCol;
-	gl_Position = MVP * vec4(Position_worldspace, 1.0f);
-
+void main()
+{
+    if(applySmoothing){
+        gl_Position = projection * view * model * vec4(aPos, 1.0);
+        sFragPos = vec3(view * model * vec4(aPos, 1.0));
+        sNormal = mat3(transpose(inverse(view * model))) * aNormal;
+        LightPos = vec3(view * vec4(lightPos, 1.0)); // Transform world-space light position to view-space light position
+	}else{
+        gl_Position = projection * view * model * vec4(aPos, 1.0);
+        fFragPos = vec3(view * model * vec4(aPos, 1.0));
+        fNormal = mat3(transpose(inverse(view * model))) * aNormal;
+        LightPos = vec3(view * vec4(lightPos, 1.0)); // Transform world-space light position to view-space light position
+	}
 
 }

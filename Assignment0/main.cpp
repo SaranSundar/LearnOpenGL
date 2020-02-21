@@ -21,13 +21,13 @@ void mouse_button_callback(GLFWwindow*, int button, int action, int modifiers);
 void key_callback(GLFWwindow*, int key, int scancode, int action, int mods);
 void char_callback(GLFWwindow*, unsigned int codepoint);
 void load_model(const char* pathName);
-void resetVariables();
+void resetCameraVariables();
 
 const unsigned int SCREEN_WIDTH = 1200;
 const unsigned int SCREEN_HEIGHT = 900;
 
 unsigned int VBO, objVAO;
-Model* modelptr = nullptr;
+Model* model = nullptr;
 
 // Camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -35,7 +35,7 @@ float lastX = SCREEN_WIDTH / 2.0f;
 float lastY = SCREEN_HEIGHT / 2.0f;
 bool firstMouse = true;
 
-//GUI stuff
+// Variables for the GUI
 using namespace nanogui;
 float cameraX = 0.0f;
 float cameraY = 0.0f;
@@ -46,23 +46,27 @@ int cameraRoll = 0;
 float zNear = 0.4f;
 float zFar = 15.0f;
 
-Color objCol(1.0f, 1.0f, 1.0f, 1.0f);
-int objShine = 16;
-bool dLightStatus = false;
-Color dLightAmbientCol(0.0f, 0.0f, 0.0f, 1.0f);
-Color dLightDiffuseCol(0.0f, 0.0f, 0.0f, 1.0f);
-Color dLightSpecularCol(0.0f, 0.0f, 0.0f, 1.0f);
-bool pLightStatus = false;
-Color pLightAmbientCol(0.0f, 0.0f, 0.0f, 1.0f);
-Color pLightDiffuseCol(0.0f, 0.0f, 0.0f, 1.0f);
-Color pLightSpecularCol(0.0f, 0.0f, 0.0f, 1.0f);
+Color modelColor(1.0f, 1.0f, 1.0f, 1.0f);
+int modelShine = 16;
+bool directionalLightStatus = false;
+bool positionalLightStatus = false;
+
+float positionalLightRadius = 5;
+float positionalLightAngleX = 0;
+float positionalLightAngleY = 0;
+float positionalLightAngleZ = 0;
+
+Color positionalLightAmbientColor(0.0f, 0.0f, 0.0f, 1.0f);
+Color positionalLightDiffuseColor(0.0f, 0.0f, 0.0f, 1.0f);
+Color positionalLightSpecularColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+Color directionalLightAmbientColor(0.0f, 0.0f, 0.0f, 1.0f);
+Color directionalLightDiffuseColor(0.0f, 0.0f, 0.0f, 1.0f);
+Color directionalLightSpecularColor(0.0f, 0.0f, 0.0f, 1.0f);
+
 bool pLightRotateX = false;
 bool pLightRotateY = false;
 bool pLightRotateZ = false;
-float pLightRadius = 5;
-float pLightAngleX = 0;
-float pLightAngleY = 0;
-float pLightAngleZ = 0;
 
 enum test_enum {
 	Item1,
@@ -70,16 +74,17 @@ enum test_enum {
 	Item3
 };
 test_enum renderType = test_enum::Item3;
-test_enum cullingType = test_enum::Item2;
 test_enum shadingType = test_enum::Item2;
 test_enum depthType = test_enum::Item2;
+test_enum cullingType = test_enum::Item2;
+
 std::string modelName = "cyborg.obj";
 
 Screen* screen = nullptr;
 
 // Lighting
-glm::vec3 pLightPos(1.2f, 1.0f, 2.0f); // Light position will be set later
-glm::vec3 dLightDir(0.0f, -1.0f, -1.0f); // Directional light direction
+glm::vec3 positonalLight(1.2f, 1.0f, 2.0f);
+glm::vec3 directionalLight(0.0f, -1.0f, -1.0f);
 
 int main() {
 	// Initialize GLFW to version 3.3
@@ -146,34 +151,34 @@ int main() {
 		// Loads inputted model
 		std::string pathName = "resources/objects/" + modelName;
 		load_model(pathName.c_str());
-		resetVariables();
+		resetCameraVariables();
 		});
 	gui->addButton("Reset Camera", []() {
 		// Resets all variables to base values.
-		resetVariables();
+		resetCameraVariables();
 		});
 
 	// Second nanogui gui
 	gui->addWindow(Eigen::Vector2i(210, 10), "Control Bar 2");
 	gui->addGroup("Lighting");
-	gui->addVariable("Object Color:", objCol);
-	gui->addVariable("Object Shininess", objShine);
-	gui->addVariable("Direction Light Status", dLightStatus);
-	gui->addVariable("Direction Light Ambient Color", dLightAmbientCol);
-	gui->addVariable("Direction Light Diffuse Color", dLightDiffuseCol);
-	gui->addVariable("Direction Light Specular Color", dLightSpecularCol);
-	gui->addVariable("Point Light Status", pLightStatus);
-	gui->addVariable("Point Light Ambient Color", pLightAmbientCol);
-	gui->addVariable("Point Light Diffuse Color", pLightDiffuseCol);
-	gui->addVariable("Point Light Specular Color", pLightSpecularCol);
+	gui->addVariable("Object Color:", modelColor);
+	gui->addVariable("Object Shininess", modelShine);
+	gui->addVariable("Direction Light Status", directionalLightStatus);
+	gui->addVariable("Direction Light Ambient Color", directionalLightAmbientColor);
+	gui->addVariable("Direction Light Diffuse Color", directionalLightDiffuseColor);
+	gui->addVariable("Direction Light Specular Color", directionalLightSpecularColor);
+	gui->addVariable("Point Light Status", positionalLightStatus);
+	gui->addVariable("Point Light Ambient Color", positionalLightAmbientColor);
+	gui->addVariable("Point Light Diffuse Color", positionalLightDiffuseColor);
+	gui->addVariable("Point Light Specular Color", positionalLightSpecularColor);
 	gui->addVariable("Point Light Rotate on X", pLightRotateX);
 	gui->addVariable("Point Light Rotate on Y", pLightRotateY);
 	gui->addVariable("Point Light Rotate on Z", pLightRotateZ);
 	gui->addButton("Reset Point Light", []() {
 		// Loads inputted model
-		pLightAngleX = 0;
-		pLightAngleY = 0;
-		pLightAngleZ = 0;
+		positionalLightAngleX = 0;
+		positionalLightAngleY = 0;
+		positionalLightAngleZ = 0;
 		});
 	screen->setVisible(true);
 	screen->performLayout();
@@ -187,9 +192,9 @@ int main() {
 	glEnable(GL_PROGRAM_POINT_SIZE);
 	glPointSize(2.0);
 	// build and compile our shader program
-	Shader objectShader("shader.vs", "shader.fs");
+	Shader modelShader("shader.vs", "shader.fs");
 	Shader pLightShader("lighting.vs", "lighting.fs");
-	modelptr = new Model();
+	model = new Model();
 	// Configure the VAO and VBO
 	glGenVertexArrays(1, &objVAO);
 	glGenBuffers(1, &VBO);
@@ -198,90 +203,76 @@ int main() {
 
 	// Game Loop
 	while (!glfwWindowShouldClose(window)) {
+		// Basic setup for depth and rendering
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		glEnable(GL_DEPTH_TEST); // Enables depth test
-		// Sets depth test type
+		glEnable(GL_DEPTH_TEST); 
 		if (depthType == 1) {
 			glDepthFunc(GL_LESS);
 		}
 		else {
 			glDepthFunc(GL_ALWAYS);
 		}
-		glEnable(GL_CULL_FACE); //Activates back-face culling.
+		glEnable(GL_CULL_FACE);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		pLightRadius = modelptr->maxY * 1.25;
+		positionalLightRadius = model->maxY * 1.25;
 		if (pLightRotateX) {
-			pLightAngleX += M_PI / 1600;
+			positionalLightAngleX += M_PI / 1600;
 		}
 		if (pLightRotateY) {
-			pLightAngleY += M_PI / 1600;
+			positionalLightAngleY += M_PI / 1600;
 		}
 		if (pLightRotateZ) {
-			pLightAngleZ += M_PI / 1600;
+			positionalLightAngleZ += M_PI / 1600;
 		}
-		float lightPosX = (sin(pLightAngleX) + cos(pLightAngleY) - 1) * pLightRadius;
-		float lightPosY = (sin(pLightAngleZ) + cos(pLightAngleX) - 1) * pLightRadius;
-		float lightPosZ = (sin(pLightAngleY) + cos(pLightAngleZ) - 1) * pLightRadius;
-		pLightPos = glm::vec3((modelptr->maxX + modelptr->minX) / 2 + lightPosX, (modelptr->maxY + modelptr->minY) / 2 + lightPosY, modelptr->maxZ + 1 + lightPosZ); //Sets point light position
+		float lightPosX = (sin(positionalLightAngleX) + cos(positionalLightAngleY) - 1) * positionalLightRadius;
+		float lightPosY = (sin(positionalLightAngleZ) + cos(positionalLightAngleX) - 1) * positionalLightRadius;
+		float lightPosZ = (sin(positionalLightAngleY) + cos(positionalLightAngleZ) - 1) * positionalLightRadius;
+		positonalLight = glm::vec3((model->maxX + model->minX) / 2 + lightPosX, (model->maxY + model->minY) / 2 + lightPosY, model->maxZ + 1 + lightPosZ); //Sets point light position
 
-		// Activates shaders with colors
-
-		//uniform vec3 dCol;            Came from pointLight.diffuseLightColor
-		//uniform vec3 aCol;            Came from pointLight.ambientLightColor
-		//uniform vec3 sCol;			Came from pointLight.specularLightColor
-		//uniform vec3 static_dCol;		Came from dirLight.diffuseLightColor
-		//uniform vec3 static_aCol;		Came from dirLight.ambientLightColor
-		//uniform vec3 static_sCol;		Came from dirLight.specularLightColor
-		//uniform mat4 MVP;
-		//uniform mat4 V;				Came from view
-		//uniform mat4 M;				Came from model
-		//uniform mat4 P;				Came from projection
-		//uniform mat4 MV;
-		//uniform vec3 lightPosWorldSpace;     Came from pointLight.position
-		//uniform bool isDyOn;		 Came from dLightStatus
-		//uniform bool isStOn;		 Came from pLightStatus
-		//uniform bool isFlat;       Came from applySmoothing
-		//uniform vec3 modCol;       Came from objectColor
-		//uniform int shininess;     Came from objectShine
-
-		objectShader.use();
+		// Activates shaders and sets all uniforms
+		modelShader.use();
 		if (shadingType == 0) {
-			objectShader.setBool("isFlat", false);
+			modelShader.setBool("applySmoothing", false);
 		}
 		else if (shadingType == 1) {
-			objectShader.setBool("isFlat", true);
+			modelShader.setBool("applySmoothing", true);
 		}
 
-		objectShader.setVec3("modCol", objCol.r(), objCol.g(), objCol.b());
-		objectShader.setInt("shininess", objShine);
-		objectShader.setVec3("viewPos", camera.Position);
+		modelShader.setVec3("objectColor", modelColor.r(), modelColor.g(), modelColor.b());
+		modelShader.setInt("objectShine", modelShine);
+		modelShader.setVec3("viewPos", camera.Position);
 
-		objectShader.setBool("isStOn", pLightStatus);
-
-		objectShader.setVec3("lightPosWorldSpace", pLightPos);
-		objectShader.setVec3("aCol", pLightAmbientCol.r(), pLightAmbientCol.g(), pLightAmbientCol.b());
-		objectShader.setVec3("dCol", pLightDiffuseCol.r(), pLightDiffuseCol.g(), pLightDiffuseCol.b());
-		objectShader.setVec3("sCol", pLightSpecularCol.r(), pLightSpecularCol.g(), pLightSpecularCol.b());
-
-
-		objectShader.setBool("isDyOn", dLightStatus);
-
-		// This is hardcoded in fragment shader so idk what to do for this
-		// objectShader.setVec3("dirLight.direction", dLightDir);
-
-
-		objectShader.setVec3("static_aCol", dLightAmbientCol.r(), dLightAmbientCol.g(), dLightAmbientCol.b());
-		objectShader.setVec3("static_dCol", dLightDiffuseCol.r(), dLightDiffuseCol.g(), dLightDiffuseCol.b());
-		objectShader.setVec3("static_sCol", dLightSpecularCol.r(), dLightSpecularCol.g(), dLightSpecularCol.b());
+		if (positionalLightStatus) {
+			modelShader.setVec3("pointLight.position", positonalLight);
+			modelShader.setVec3("pointLight.ambientLightColor", positionalLightAmbientColor.r(), positionalLightAmbientColor.g(), positionalLightAmbientColor.b());
+			modelShader.setVec3("pointLight.diffuseLightColor", positionalLightDiffuseColor.r(), positionalLightDiffuseColor.g(), positionalLightDiffuseColor.b());
+			modelShader.setVec3("pointLight.specularLightColor", positionalLightSpecularColor.r(), positionalLightSpecularColor.g(), positionalLightSpecularColor.b());
+		}
+		else {
+			modelShader.setVec3("pointLight.ambientLightColor", 0, 0, 0);
+			modelShader.setVec3("pointLight.diffuseLightColor", 0, 0, 0);
+			modelShader.setVec3("pointLight.specularLightColor", 0, 0, 0);
+		}
+		if (directionalLightStatus) {
+			modelShader.setVec3("dirLight.direction", directionalLight);
+			modelShader.setVec3("dirLight.ambientLightColor", directionalLightAmbientColor.r(), directionalLightAmbientColor.g(), directionalLightAmbientColor.b());
+			modelShader.setVec3("dirLight.diffuseLightColor", directionalLightDiffuseColor.r(), directionalLightDiffuseColor.g(), directionalLightDiffuseColor.b());
+			modelShader.setVec3("dirLight.specularLightColor", directionalLightSpecularColor.r(), directionalLightSpecularColor.g(), directionalLightSpecularColor.b());
+		}
+		else {
+			modelShader.setVec3("dirLight.ambientLightColor", 0, 0, 0);
+			modelShader.setVec3("dirLight.diffuseLightColor", 0, 0, 0);
+			modelShader.setVec3("dirLight.specularLightColor", 0, 0, 0);
+		}
 
 		//Apply camera translation and rotation.
 		camera.TranslateCamera(cameraX, cameraY, cameraZ);
 		camera.RotateCamera(cameraYaw, cameraPitch, cameraRoll);
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, zNear, zFar);
 		glm::mat4 view = camera.GetViewMatrix();
-		objectShader.setMat4("P", projection);
-		objectShader.setMat4("V", view);
+		modelShader.setMat4("projection", projection);
+		modelShader.setMat4("view", view);
 
 		// Sets culling mode for model
 		if (cullingType == 0) {
@@ -308,18 +299,14 @@ int main() {
 		glBindVertexArray(objVAO); //Binds VAO
 		glm::mat4 modelObj = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
 		modelObj = glm::translate(modelObj, glm::vec3(0.0f, 0.0f, 0.0f));
-		objectShader.setMatrix("M", modelObj);
-		glm::mat4 MV = modelObj * view;
-		glm::mat4 MVP = modelObj * view * projection;
-		objectShader.setMat4("MV", MV);
-		objectShader.setMat4("MVP", MVP);
+		modelShader.setMatrix("model", modelObj);
 
 		// Sets render mode
 		if (renderType == 0) {
-			glDrawArrays(GL_POINTS, 0, modelptr->vertices.size()); // Render as points
+			glDrawArrays(GL_POINTS, 0, model->vertices.size()); // Render as points
 		}
 		else {
-			glDrawArrays(GL_TRIANGLES, 0, modelptr->vertices.size()); // Render as lines
+			glDrawArrays(GL_TRIANGLES, 0, model->vertices.size()); // Render as lines
 		}
 
 		// Render's the light.
@@ -345,14 +332,14 @@ int main() {
 }
 
 void load_model(const char* pathName) {
-	modelptr->loadObj(pathName);
-	camera.setNewOrigin((modelptr->maxX + modelptr->minX) / 2, (modelptr->maxY + modelptr->minY) / 2, 6);
+	model->loadObj(pathName);
+	camera.setNewOrigin((model->maxX + model->minX) / 2, (model->maxY + model->minY) / 2, 6);
 	// Binds Vertex Array Object first
 	glBindVertexArray(objVAO);
 
 	// Binds and sets vertex buffers
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, modelptr->vertices.size() * sizeof(Model::Vertex), &(modelptr->vertices.front()), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, model->vertices.size() * sizeof(Model::Vertex), &(model->vertices.front()), GL_STATIC_DRAW);
 
 	// Configures vertex attributess
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Model::Vertex), (GLvoid*)offsetof(Model::Vertex, Position));
@@ -366,7 +353,7 @@ void load_model(const char* pathName) {
 	glBindVertexArray(0);
 }
 
-void resetVariables() {
+void resetCameraVariables() {
 	cameraX = 0.0f;
 	cameraY = 0.0f;
 	cameraZ = 0.0f;
