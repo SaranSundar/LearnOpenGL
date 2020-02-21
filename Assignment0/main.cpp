@@ -234,9 +234,9 @@ int main() {
 		//uniform vec3 static_aCol;		Came from dirLight.ambientLightColor
 		//uniform vec3 static_sCol;		Came from dirLight.specularLightColor
 		//uniform mat4 MVP;
-		//uniform mat4 V;
-		//uniform mat4 M;
-		//uniform mat4 P;
+		//uniform mat4 V;				Came from view
+		//uniform mat4 M;				Came from model
+		//uniform mat4 P;				Came from projection
 		//uniform mat4 MV;
 		//uniform vec3 lightPosWorldSpace;     Came from pointLight.position
 		//uniform bool isDyOn;		 Came from dLightStatus
@@ -280,8 +280,8 @@ int main() {
 		camera.RotateCamera(cameraYaw, cameraPitch, cameraRoll);
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, zNear, zFar);
 		glm::mat4 view = camera.GetViewMatrix();
-		objectShader.setMat4("projection", projection);
-		objectShader.setMat4("view", view);
+		objectShader.setMat4("P", projection);
+		objectShader.setMat4("V", view);
 
 		// Sets culling mode for model
 		if (cullingType == 0) {
@@ -308,7 +308,11 @@ int main() {
 		glBindVertexArray(objVAO); //Binds VAO
 		glm::mat4 modelObj = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
 		modelObj = glm::translate(modelObj, glm::vec3(0.0f, 0.0f, 0.0f));
-		objectShader.setMatrix("model", modelObj);
+		objectShader.setMatrix("M", modelObj);
+		glm::mat4 MV = modelObj * view;
+		glm::mat4 MVP = modelObj * view * projection;
+		objectShader.setMat4("MV", MV);
+		objectShader.setMat4("MVP", MVP);
 
 		// Sets render mode
 		if (renderType == 0) {
