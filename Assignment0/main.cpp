@@ -1,60 +1,61 @@
-#include <iostream>
-
 // GLEW
 #define GLEW_STATIC
 #include <GL/glew.h>
 
 // GLFW
 #include <GLFW/glfw3.h>
-
+#include <iostream>
 #include "nanogui/nanogui.h"
-
 #include <stb_image.h>
-
-#include "Shader.h"
-#include "Model.h"
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "Shader.h"
+#include "Model.h"
 #include "Camera.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window);
 void mouse_cursor_callback(GLFWwindow* window, double xpos, double ypos);
 void mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_button_callback(GLFWwindow*, int button, int action, int modifiers);
 void key_callback(GLFWwindow*, int key, int scancode, int action, int mods);
 void char_callback(GLFWwindow*, unsigned int codepoint);
-void drop_callback(GLFWwindow*, int count, const char** filenames);
 void load_model(const char* pathName);
+void resetVariables();
 
 const unsigned int SCREEN_WIDTH = 1200;
 const unsigned int SCREEN_HEIGHT = 900;
 
-unsigned int VBO, VAO;
+unsigned int VBO, objVAO;
+Model* modelptr = nullptr;
 
-// camera
-Camera* camera = nullptr;
-
+// Camera
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = SCREEN_WIDTH / 2.0f;
+float lastY = SCREEN_HEIGHT / 2.0f;
+bool firstMouse = true;
 
 //GUI stuff
 using namespace nanogui;
-Color colval(0.5f, 0.5f, 0.7f, 1.f);
 float cameraX = 0.0f;
 float cameraY = 0.0f;
 float cameraZ = 0.0f;
+int cameraYaw = -90;
+int cameraPitch = 0;
+int cameraRoll = 0;
+float zNear = 0.4f;
+float zFar = 15.0f;
 
 Color objCol(1.0f, 1.0f, 1.0f, 1.0f);
 int objShine = 16;
 bool dLightStatus = false;
-Color dLightAmbientCol(1.0f, 1.0f, 1.0f, 1.0f);
-Color dLightDiffuseCol(1.0f, 1.0f, 1.0f, 1.0f);
-Color dLightSpecularCol(1.0f, 1.0f, 1.0f, 1.0f);
+Color dLightAmbientCol(0.0f, 0.0f, 0.0f, 1.0f);
+Color dLightDiffuseCol(0.0f, 0.0f, 0.0f, 1.0f);
+Color dLightSpecularCol(0.0f, 0.0f, 0.0f, 1.0f);
 bool pLightStatus = false;
-Color pLightAmbientCol(1.0f, 1.0f, 1.0f, 1.0f);
-Color pLightDiffuseCol(1.0f, 1.0f, 1.0f, 1.0f);
-Color pLightSpecularCol(1.0f, 1.0f, 1.0f, 1.0f);
+Color pLightAmbientCol(0.0f, 0.0f, 0.0f, 1.0f);
+Color pLightDiffuseCol(0.0f, 0.0f, 0.0f, 1.0f);
+Color pLightSpecularCol(0.0f, 0.0f, 0.0f, 1.0f);
 bool pLightRotateX = false;
 bool pLightRotateY = false;
 bool pLightRotateZ = false;
@@ -63,14 +64,6 @@ float pLightAngleX = 0;
 float pLightAngleY = 0;
 float pLightAngleZ = 0;
 
-float rotateValue = 5.0f;
-
-float zNear = 0.1f;
-float zFar = 10.0f;
-
-float rotateRight = 0.0f;
-float rotateFront = 0.0f;
-float rotateUp = 0.0f;
 enum test_enum {
 	Item1,
 	Item2,
@@ -84,13 +77,9 @@ std::string modelName = "cyborg.obj";
 
 Screen* screen = nullptr;
 
-Model* model = nullptr;
-
-FormHelper* gui = nullptr;
-
 // Lighting
-glm::vec3 positionalLight(1.2f, 1.0f, 2.0f); // Light position will be set later
-glm::vec3 directionalLight(0.0f, -1.0f, -1.0f); // Directional light direction
+glm::vec3 pLightPos(1.2f, 1.0f, 2.0f); // Light position will be set later
+glm::vec3 dLightDir(0.0f, -1.0f, -1.0f); // Directional light direction
 
 int main() {
 	// Initialize GLFW to version 3.3
@@ -116,7 +105,7 @@ int main() {
 	glGetError(); // pull and ignore unhandled errors like GL_INVALID_ENUM
 #endif
 
-	// Sets OpenGL Screen Size and register screen resize callback
+// Sets OpenGL Screen Size and register screen resize callback
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_cursor_callback);
@@ -124,97 +113,45 @@ int main() {
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetCharCallback(window, char_callback);
-	glfwSetDropCallback(window, drop_callback);
 
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	// Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
-	glewExperimental = GL_TRUE;
-	// Initialize GLEW to setup the OpenGL Function pointers
-	glewInit();
-
-	model = new Model();
-	camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
-
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-
-	// Create a nanogui screen and pass the glfw pointer to initialize
+	// Creates a nanogui screen and pass the glfw pointer to initialize
 	screen = new Screen();
 	screen->initialize(window, true);
 
-	// Create nanogui gui
+	// Start of nanogui gui
 	bool enabled = true;
-	gui = new FormHelper(screen);
-	ref<Window> nanoguiWindow = gui->addWindow(Eigen::Vector2i(10, 10), "Controls");
-	gui->addGroup("Color");
-	gui->addVariable("Object Color:", colval);
-
-	gui->addGroup("Position");
+	FormHelper* gui = new FormHelper(screen);
+	ref<Window> nanoguiWindow =
+		// First nanogui gui
+		gui->addWindow(Eigen::Vector2i(10, 10), "Control Bar 1");
+	gui->addGroup("Camera Position");
 	gui->addVariable("X", cameraX)->setSpinnable(true);
 	gui->addVariable("Y", cameraY)->setSpinnable(true);
 	gui->addVariable("Z", cameraZ)->setSpinnable(true);
 
-	gui->addGroup("Rotate");
-	gui->addVariable("Rotate Value", rotateValue)->setSpinnable(true);
-	gui->addButton("Rotate right+", []() {
-		std::cout << "Rotate right+" << std::endl;
-		rotateRight += rotateValue;
-		});
-	gui->addButton("Rotate right-", []() {
-		std::cout << "Rotate right-" << std::endl;
-		rotateRight -= rotateValue;
-		});
-
-	gui->addButton("Rotate up+", []() {
-		std::cout << "Rotate up+" << std::endl;
-		rotateUp += rotateValue;
-		});
-	gui->addButton("Rotate up-", []() {
-		std::cout << "Rotate up-" << std::endl;
-		rotateUp -= rotateValue;
-		});
-	gui->addButton("Rotate front+", []() {
-		std::cout << "Rotate front+" << std::endl;
-		rotateFront += rotateValue;
-		});
-	gui->addButton("Rotate front-", []() {
-		std::cout << "Rotate front-" << std::endl;
-		rotateFront -= rotateValue;
-		});
+	gui->addGroup("Camera Rotatation");
+	gui->addVariable("Yaw", cameraYaw)->setSpinnable(true);
+	gui->addVariable("Pitch", cameraPitch)->setSpinnable(true);
+	gui->addVariable("Roll", cameraRoll)->setSpinnable(true);
 
 	gui->addGroup("Configuration");
 	gui->addVariable("Z Near", zNear)->setSpinnable(true);
 	gui->addVariable("Z Far", zFar)->setSpinnable(true);
 	gui->addVariable("Render Type", renderType, enabled)->setItems({ "Point", "Line", "Triangle" });
 	gui->addVariable("Culling Type", cullingType, enabled)->setItems({ "CW", "CCW" });
+	gui->addVariable("Shading Type", shadingType, enabled)->setItems({ "FLAT", "SMOOTH" });
+	gui->addVariable("Depth Type", depthType, enabled)->setItems({ "LESS", "ALWAYS" });
 	gui->addVariable("Model Name", modelName);
 	gui->addButton("Reload model", []() {
-		std::cout << "Reload Model" << std::endl;
+		// Loads inputted model
 		std::string pathName = "resources/objects/" + modelName;
 		load_model(pathName.c_str());
+		resetVariables();
 		});
 	gui->addButton("Reset Camera", []() {
-		std::cout << "Reset Camera" << std::endl;
-		camera = nullptr;
-		camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
-		cameraX = 0.0f;
-		cameraY = 0.0f;
-		cameraZ = 0.0f;
-		cameraZ = 3;
-		cameraY = (model->maxY + model->minY) / 2;
-		rotateValue = 5.0f;
-		rotateRight = 0.0f;
-		rotateFront = 0.0f;
-		rotateUp = 0.0f;
-		zNear = 0.1f;
-		zFar = 10.0f;
-		gui->refresh();
+		// Resets all variables to base values.
+		resetVariables();
 		});
-
-	screen->setVisible(true);
-	screen->performLayout();
 
 	// Second nanogui gui
 	gui->addWindow(Eigen::Vector2i(210, 10), "Control Bar 2");
@@ -232,44 +169,48 @@ int main() {
 	gui->addVariable("Point Light Rotate on X", pLightRotateX);
 	gui->addVariable("Point Light Rotate on Y", pLightRotateY);
 	gui->addVariable("Point Light Rotate on Z", pLightRotateZ);
+	gui->addButton("Reset Point Light", []() {
+		// Loads inputted model
+		pLightAngleX = 0;
+		pLightAngleY = 0;
+		pLightAngleZ = 0;
+		});
 	screen->setVisible(true);
 	screen->performLayout();
-
 	//End of nanogui gui
 
-	glEnable(GL_DEPTH_TEST);
-
+	// Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
+	glewExperimental = GL_TRUE;
+	// Initialize GLEW to setup the OpenGL Function pointers
+	glewInit();
+	// Sets size of points when rendering as points
+	glEnable(GL_PROGRAM_POINT_SIZE);
+	glPointSize(2.0);
 	// build and compile our shader program
-	Shader shader("shader.vs", "shader.fs");
-	Shader lightShader("lighting.vs", "lighting.fs");
+	Shader objectShader("shader.vs", "shader.fs");
+	Shader pLightShader("lighting.vs", "lighting.fs");
+	modelptr = new Model();
+	// Configure the VAO and VBO
+	glGenVertexArrays(1, &objVAO);
+	glGenBuffers(1, &VBO);
 
 	load_model("resources/objects/cyborg.obj");
 
 	// Game Loop
 	while (!glfwWindowShouldClose(window)) {
-
-		// get input
-		processInput(window);
-
-		// Translates camera from gui input
-		// Yaw is turn head left and right
-		// Pitch is turn hed up and down
-		// Roll is plane doing barrel roll
-		camera->TranslateCamera(cameraX, cameraY, cameraZ, rotateRight, rotateUp, rotateFront);
-
-		// render events
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glEnable(GL_DEPTH_TEST);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glEnable(GL_DEPTH_TEST); // Enables depth test
+		// Sets depth test type
 		if (depthType == 1) {
 			glDepthFunc(GL_LESS);
 		}
 		else {
 			glDepthFunc(GL_ALWAYS);
 		}
+		glEnable(GL_CULL_FACE); //Activates back-face culling.
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-		pLightRadius = model->maxY * 1.25;
+		pLightRadius = modelptr->maxY * 1.25;
 		if (pLightRotateX) {
 			pLightAngleX += M_PI / 1600;
 		}
@@ -282,135 +223,157 @@ int main() {
 		float lightPosX = (sin(pLightAngleX) + cos(pLightAngleY) - 1) * pLightRadius;
 		float lightPosY = (sin(pLightAngleZ) + cos(pLightAngleX) - 1) * pLightRadius;
 		float lightPosZ = (sin(pLightAngleY) + cos(pLightAngleZ) - 1) * pLightRadius;
-		positionalLight = glm::vec3((model->maxX + model->minX) / 2 + lightPosX, (model->maxY + model->minY) / 2 + lightPosY, model->maxZ + 1 + lightPosZ); //Sets point light position
+		pLightPos = glm::vec3((modelptr->maxX + modelptr->minX) / 2 + lightPosX, (modelptr->maxY + modelptr->minY) / 2 + lightPosY, modelptr->maxZ + 1 + lightPosZ); //Sets point light position
 
+		// Activates shaders with colors
 
-		shader.use();
+		//uniform vec3 dCol;            Came from pointLight.diffuseLightColor
+		//uniform vec3 aCol;            Came from pointLight.ambientLightColor
+		//uniform vec3 sCol;			Came from pointLight.specularLightColor
+		//uniform vec3 static_dCol;		Came from dirLight.diffuseLightColor
+		//uniform vec3 static_aCol;		Came from dirLight.ambientLightColor
+		//uniform vec3 static_sCol;		Came from dirLight.specularLightColor
+		//uniform mat4 MVP;
+		//uniform mat4 V;
+		//uniform mat4 M;
+		//uniform mat4 P;
+		//uniform mat4 MV;
+		//uniform vec3 lightPosWorldSpace;     Came from pointLight.position
+		//uniform bool isDyOn;		 Came from dLightStatus
+		//uniform bool isStOn;		 Came from pLightStatus
+		//uniform bool isFlat;       Came from applySmoothing
+		//uniform vec3 modCol;       Came from objectColor
+		//uniform int shininess;     Came from objectShine
+
+		objectShader.use();
 		if (shadingType == 0) {
-			shader.setBool("applySmoothing", false);
+			objectShader.setBool("isFlat", false);
 		}
 		else if (shadingType == 1) {
-			shader.setBool("applySmoothing", true);
-		}
-		shader.setVec3("ourColor", colval.r(), colval.g(), colval.b());
-		shader.setInt("objectShine", objShine);
-		shader.setVec3("viewPos", camera->Position);
-		std::cout << "-------" << std::endl;
-		std::cout << pLightAmbientCol.r() << std::endl;
-		std::cout << pLightAmbientCol.g() << std::endl;
-		std::cout << pLightAmbientCol.b() << std::endl;
-		std::cout << "-------" << std::endl;
-
-		if (pLightStatus) {
-			shader.setVec3("pointLight.position", positionalLight);
-			shader.setVec3("pointLight.ambientLightColor", pLightAmbientCol.r(), pLightAmbientCol.g(), pLightAmbientCol.b());
-			shader.setVec3("pointLight.diffuseLightColor", pLightDiffuseCol.r(), pLightDiffuseCol.g(), pLightDiffuseCol.b());
-			shader.setVec3("pointLight.specularLightColor", pLightSpecularCol.r(), pLightSpecularCol.g(), pLightSpecularCol.b());
-		}
-		else {
-			shader.setVec3("pointLight.ambientLightColor", 0, 0, 0);
-			shader.setVec3("pointLight.diffuseLightColor", 0, 0, 0);
-			shader.setVec3("pointLight.specularLightColor", 0, 0, 0);
-		}
-		if (dLightStatus) {
-			shader.setVec3("dirLight.direction", directionalLight);
-			shader.setVec3("dirLight.ambientLightColor", dLightAmbientCol.r(), dLightAmbientCol.g(), dLightAmbientCol.b());
-			shader.setVec3("dirLight.diffuseLightColor", dLightDiffuseCol.r(), dLightDiffuseCol.g(), dLightDiffuseCol.b());
-			shader.setVec3("dirLight.specularLightColor", dLightSpecularCol.r(), dLightSpecularCol.g(), dLightSpecularCol.b());
-		}
-		else {
-			shader.setVec3("dirLight.ambientLightColor", 0, 0, 0);
-			shader.setVec3("dirLight.diffuseLightColor", 0, 0, 0);
-			shader.setVec3("dirLight.specularLightColor", 0, 0, 0);
+			objectShader.setBool("isFlat", true);
 		}
 
+		objectShader.setVec3("modCol", objCol.r(), objCol.g(), objCol.b());
+		objectShader.setInt("shininess", objShine);
+		objectShader.setVec3("viewPos", camera.Position);
+
+		objectShader.setBool("isStOn", pLightStatus);
+
+		objectShader.setVec3("lightPosWorldSpace", pLightPos);
+		objectShader.setVec3("aCol", pLightAmbientCol.r(), pLightAmbientCol.g(), pLightAmbientCol.b());
+		objectShader.setVec3("dCol", pLightDiffuseCol.r(), pLightDiffuseCol.g(), pLightDiffuseCol.b());
+		objectShader.setVec3("sCol", pLightSpecularCol.r(), pLightSpecularCol.g(), pLightSpecularCol.b());
+
+
+		objectShader.setBool("isDyOn", dLightStatus);
+
+		// This is hardcoded in fragment shader so idk what to do for this
+		// objectShader.setVec3("dirLight.direction", dLightDir);
+
+
+		objectShader.setVec3("static_aCol", dLightAmbientCol.r(), dLightAmbientCol.g(), dLightAmbientCol.b());
+		objectShader.setVec3("static_dCol", dLightDiffuseCol.r(), dLightDiffuseCol.g(), dLightDiffuseCol.b());
+		objectShader.setVec3("static_sCol", dLightSpecularCol.r(), dLightSpecularCol.g(), dLightSpecularCol.b());
+
+		//Apply camera translation and rotation.
+		camera.TranslateCamera(cameraX, cameraY, cameraZ);
+		camera.RotateCamera(cameraYaw, cameraPitch, cameraRoll);
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, zNear, zFar);
-		glm::mat4 view = camera->GetViewMatrix();
-		shader.setMat4("projection", projection);
-		shader.setMat4("view", view);
+		glm::mat4 view = camera.GetViewMatrix();
+		objectShader.setMat4("projection", projection);
+		objectShader.setMat4("view", view);
 
-
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-		glBindVertexArray(VAO);
-		glm::mat4 modelObj = glm::mat4(1.0f);
-		modelObj = glm::translate(modelObj, glm::vec3(0.0f, 0.0f, 0.0f));
-		shader.setMatrix("model", modelObj);
-
+		// Sets culling mode for model
 		if (cullingType == 0) {
-			glEnable(GL_CULL_FACE);
-			glCullFace(GL_FRONT);
+			glFrontFace(GL_CW); // Renders CW
 		}
 		else {
-			glEnable(GL_CULL_FACE);
-			glCullFace(GL_BACK);
+			glFrontFace(GL_CCW); // Renders CCW
 		}
 
+		// Sets render mode
 		if (renderType == 0) {
-			glEnable(GL_PROGRAM_POINT_SIZE);
-			glPointSize(5.0);
-			glPolygonMode(GL_FRONT_AND_BACK, GL_POINTS);
-			glDrawArrays(GL_POINTS, 0, model->vertices.size());
+			glPolygonMode(GL_FRONT_AND_BACK, GL_POINT); // Render as points
 		}
 		else if (renderType == 1) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			glDrawArrays(GL_TRIANGLES, 0, model->vertices.size());
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Render as lines
 		}
 		else if (renderType == 2) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			glDrawArrays(GL_TRIANGLES, 0, model->vertices.size());
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Render as triangles
+		}
+		else {
+			std::cout << "Invalid render mode" << std::endl;
+		}
+
+		glBindVertexArray(objVAO); //Binds VAO
+		glm::mat4 modelObj = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+		modelObj = glm::translate(modelObj, glm::vec3(0.0f, 0.0f, 0.0f));
+		objectShader.setMatrix("model", modelObj);
+
+		// Sets render mode
+		if (renderType == 0) {
+			glDrawArrays(GL_POINTS, 0, modelptr->vertices.size()); // Render as points
+		}
+		else {
+			glDrawArrays(GL_TRIANGLES, 0, modelptr->vertices.size()); // Render as lines
 		}
 
 		// Render's the light.
-		lightShader.use();
-		lightShader.setMat4("projection", projection);
-		lightShader.setMat4("view", view);
+		pLightShader.use();
+		pLightShader.setMat4("projection", projection);
+		pLightShader.setMat4("view", view);
 
-		// Screen GUI
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		// Draws GUI
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		screen->drawWidgets();
+		gui->refresh();
 
-
-		// double buffer and input events
+		// Swaps buffers, processes events.
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
 	// Clean up remaining resources
+	glDeleteVertexArrays(1, &objVAO);
+	glDeleteBuffers(1, &VBO);
 	glfwTerminate();
 	return 0;
 }
 
 void load_model(const char* pathName) {
-	model->load_obj(pathName);
+	modelptr->loadObj(pathName);
+	camera.setNewOrigin((modelptr->maxX + modelptr->minX) / 2, (modelptr->maxY + modelptr->minY) / 2, 6);
+	// Binds Vertex Array Object first
+	glBindVertexArray(objVAO);
 
-	cameraZ = 3;
-	cameraY = (model->maxY + model->minY) / 2;
-	cullingType = test_enum::Item2;
-	gui->refresh();
-
-	glBindVertexArray(VAO);
-
+	// Binds and sets vertex buffers
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, model->vertices.size() * sizeof(Model::Vertex), &(model->vertices.front()), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, modelptr->vertices.size() * sizeof(Model::Vertex), &(modelptr->vertices.front()), GL_STATIC_DRAW);
 
+	// Configures vertex attributess
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Model::Vertex), (GLvoid*)offsetof(Model::Vertex, Position));
 	glEnableVertexAttribArray(0);
 
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Model::Vertex), (GLvoid*)offsetof(Model::Vertex, Position));
 	glEnableVertexAttribArray(1);
 
+	// Unbind
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 }
 
-void processInput(GLFWwindow* window)
-{
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
+void resetVariables() {
+	cameraX = 0.0f;
+	cameraY = 0.0f;
+	cameraZ = 0.0f;
+	cameraYaw = -90;
+	cameraPitch = 0;
+	cameraRoll = 0;
+	zNear = 0.4f;
+	zFar = 15.0f;
 }
 
+// Callbacks listen for inputs.
 void key_callback(GLFWwindow*, int key, int scancode, int action, int mods) {
 	screen->keyCallbackEvent(key, scancode, action, mods);
 }
@@ -419,26 +382,20 @@ void char_callback(GLFWwindow*, unsigned int codepoint) {
 	screen->charCallbackEvent(codepoint);
 }
 
-void drop_callback(GLFWwindow*, int count, const char** filenames) {
-	screen->dropCallbackEvent(count, filenames);
-}
-
 void mouse_button_callback(GLFWwindow*, int button, int action, int modifiers) {
 	screen->mouseButtonCallbackEvent(button, action, modifiers);
 }
 
+void mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	screen->scrollCallbackEvent(xoffset, yoffset);
+}
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-	glViewport(0, 0, width, height);
 	screen->resizeCallbackEvent(width, height);
 }
 
 void mouse_cursor_callback(GLFWwindow* window, double xpos, double ypos)
 {
 	screen->cursorPosCallbackEvent(xpos, ypos);
-
-}
-
-void mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-	screen->scrollCallbackEvent(xoffset, yoffset);
 }

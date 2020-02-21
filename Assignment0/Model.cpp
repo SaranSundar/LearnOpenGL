@@ -9,20 +9,21 @@
 #include <glm/gtc/type_ptr.hpp>
 using namespace std;
 
-void Model::load_obj(std::string obj_path) {
-	vertices.clear();
-	minZ = 10000;
-	maxZ = -10000;
-	minY = 10000;
-	maxY = -10000;
+void Model::loadObj(std::string pathName) {
 	minX = 10000;
 	maxX = -10000;
+	minY = 10000;
+	maxY = -10000;
+	minZ = 10000;
+	maxZ = -10000;
+
+	vertices.clear();
 	std::vector<glm::vec3> positions;
 	std::vector<glm::vec3> normals;
 	std::vector<glm::vec2> tex_coods;
 	ifstream ifs;
 	try {
-		ifs.open(obj_path);
+		ifs.open(pathName);
 		string one_line;
 		while (getline(ifs, one_line)) {
 			stringstream ss(one_line);
@@ -65,66 +66,28 @@ void Model::load_obj(std::string obj_path) {
 				vertex_2.TexCoords = tex_coods[tex_idx - offset];
 				vertex_2.Normal = normals[norm_idx - offset];
 
-				if (vertex_0.Position.y < minY) {
-					minY = vertex_0.Position.y;
+				Vertex vertexList[3] = { vertex_0, vertex_1, vertex_2 };
+				// Calculates min and max coordinates of the model
+				for (int i = 0; i < 3; i++) {
+					if (vertexList[i].Position.x < minX) {
+						minX = vertexList[i].Position.x;
+					}
+					if (vertexList[i].Position.x > maxX) {
+						maxX = vertexList[i].Position.x;
+					}
+					if (vertexList[i].Position.y < minY) {
+						minY = vertexList[i].Position.y;
+					}
+					if (vertexList[i].Position.y > maxY) {
+						maxY = vertexList[i].Position.y;
+					}
+					if (vertexList[i].Position.z < minZ) {
+						minZ = vertexList[i].Position.z;
+					}
+					if (vertexList[i].Position.z > maxZ) {
+						maxZ = vertexList[i].Position.z;
+					}
 				}
-				if (vertex_1.Position.y < minY) {
-					minY = vertex_1.Position.y;
-				}
-				if (vertex_2.Position.y < minY) {
-					minY = vertex_2.Position.y;
-				}
-
-				if (vertex_0.Position.y > maxY) {
-					maxY = vertex_0.Position.y;
-				}
-				if (vertex_1.Position.y > maxY) {
-					maxY = vertex_1.Position.y;
-				}
-				if (vertex_2.Position.y > maxY) {
-					maxY = vertex_2.Position.y;
-				}
-
-				if (vertex_0.Position.z > maxZ) {
-					maxZ = vertex_0.Position.z;
-				}
-				if (vertex_1.Position.z > maxZ) {
-					maxZ = vertex_1.Position.z;
-				}
-				if (vertex_2.Position.z > maxZ) {
-					maxZ = vertex_2.Position.z;
-				}
-
-				if (vertex_0.Position.z < minZ) {
-					minZ = vertex_0.Position.z;
-				}
-				if (vertex_1.Position.z < minZ) {
-					minZ = vertex_1.Position.z;
-				}
-				if (vertex_2.Position.z < minZ) {
-					minZ = vertex_2.Position.z;
-				}
-
-				if (vertex_0.Position.x < minX) {
-					minX = vertex_0.Position.x;
-				}
-				if (vertex_1.Position.x < minX) {
-					minX = vertex_1.Position.x;
-				}
-				if (vertex_2.Position.x < minX) {
-					minX = vertex_2.Position.x;
-				}
-
-				if (vertex_0.Position.x > maxX) {
-					maxX = vertex_0.Position.x;
-				}
-				if (vertex_1.Position.x > maxX) {
-					maxX = vertex_1.Position.x;
-				}
-				if (vertex_2.Position.x > maxX) {
-					maxX = vertex_2.Position.x;
-				}
-
 				vertices.push_back(vertex_0);
 				vertices.push_back(vertex_1);
 				vertices.push_back(vertex_2);
@@ -135,4 +98,3 @@ void Model::load_obj(std::string obj_path) {
 		cout << "Error: Obj file cannot be read\n";
 	}
 }
-

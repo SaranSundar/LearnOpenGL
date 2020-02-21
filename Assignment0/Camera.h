@@ -7,12 +7,9 @@
 #include <vector>
 
 // Default camera values
-const float YAW = -90.0f;
-const float PITCH = 0.0f;
-const float SPEED = 2.5f;
-const float SENSITIVITY = 0.1f;
-const float ZOOM = 45.0f;
-
+const float defaultYaw = -90.0f;
+const float defaultPitch = 0.0f;
+const float defaultRoll = 0.0f;
 
 // An abstract camera class that processes input and calculates the corresponding Euler Angles, Vectors and Matrices for use in OpenGL
 class Camera
@@ -29,23 +26,16 @@ public:
     float Yaw;
     float Pitch;
     float Roll;
-    float offsetYaw = 0.0f;
-    float offsetPitch = 0.0f;
-    float offsetRoll = 0.0f;
-    // Camera options
-    float MovementSpeed;
-    float MouseSensitivity;
-    float Zoom;
 
     // Constructor with vectors
-    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), Zoom(ZOOM)
+    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float inYaw = defaultYaw, float inPitch = defaultPitch, float inRoll = defaultRoll) : Front(glm::vec3(0.0f, 0.0f, -1.0f))
     {
         Position = position;
         Origin = position;
         WorldUp = up;
-        Yaw = yaw;
-        Roll = 0.0f;
-        Pitch = pitch;
+        Yaw = inYaw;
+        Pitch = inPitch;
+        Roll = inRoll;
         updateCameraVectors();
     }
 
@@ -55,24 +45,19 @@ public:
         return glm::lookAt(Position, Position + Front, Up);
     }
 
-    void TranslateCamera(float X, float Y, float Z, float rX, float rY, float rZ, GLboolean constrainPitch = true) {
-        Position = Origin + glm::vec3(X, Y, Z);
+    void TranslateCamera(float posX, float posY, float posZ) {
+        Position = Origin + glm::vec3(posX, posY, posZ);
+    }
 
-        offsetYaw = rX;
-        offsetPitch = rY;
-        offsetRoll = rZ;
-
-        // Make sure that when pitch is out of bounds, screen doesn't get flipped
-        if (constrainPitch)
-        {
-            if (Pitch > 89.0f)
-                Pitch = 89.0f;
-            if (Pitch < -89.0f)
-                Pitch = -89.0f;
-        }
-
-        // Update Front, Right and Up Vectors using the updated Euler angles
+    void RotateCamera(float inYaw, float inPitch, float inRoll) {
+        Yaw = inYaw;
+        Pitch = inPitch;
+        Roll = inRoll;
         updateCameraVectors();
+    }
+
+    void setNewOrigin(float posX, float posY, float posZ) {
+        Origin = glm::vec3(posX, posY, posZ);
     }
 
 private:
@@ -81,13 +66,12 @@ private:
     {
         // Calculate the new Front vector
         glm::vec3 front;
-        front.x = cos(glm::radians(Yaw + offsetYaw)) * cos(glm::radians(Pitch + offsetPitch));
-        front.y = sin(glm::radians(Pitch + offsetPitch));
-        front.z = sin(glm::radians(Yaw + offsetYaw)) * cos(glm::radians(Pitch + offsetPitch));
-
+        front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+        front.y = sin(glm::radians(Pitch));
+        front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
         Front = glm::normalize(front);
         // Also re-calculate the Right and Up vector
-        Right = glm::normalize(glm::cross(Front, WorldUp)); 
+        Right = glm::normalize(glm::cross(Front, WorldUp));  // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
         Up = glm::normalize(glm::cross(Right, Front));
     }
 };
