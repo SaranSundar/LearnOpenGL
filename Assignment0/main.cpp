@@ -20,20 +20,9 @@ void mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_button_callback(GLFWwindow*, int button, int action, int modifiers);
 void key_callback(GLFWwindow*, int key, int scancode, int action, int mods);
 void char_callback(GLFWwindow*, unsigned int codepoint);
-void load_model(const char* pathName);
-void resetCameraVariables();
 
 const unsigned int SCREEN_WIDTH = 1200;
 const unsigned int SCREEN_HEIGHT = 900;
-
-unsigned int VBO, objVAO;
-Model* model = nullptr;
-
-// Camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-float lastX = SCREEN_WIDTH / 2.0f;
-float lastY = SCREEN_HEIGHT / 2.0f;
-bool firstMouse = true;
 
 // Variables for the GUI
 using namespace nanogui;
@@ -67,6 +56,29 @@ Color directionalLightSpecularColor(0.0f, 0.0f, 0.0f, 1.0f);
 bool pLightRotateX = false;
 bool pLightRotateY = false;
 bool pLightRotateZ = false;
+
+
+
+//camera settings
+glm::vec3 cam_pos = glm::vec3(0, 2, 6);
+glm::vec3 cam_dir = glm::vec3(0, 0, -1); //direction means what the camera is looking at
+glm::vec3 temp_cam_dir = glm::vec3(0, 0, 1); //use this for the cross product or else when cam_dir and cam_up overlap, the cross product will be 0 (bad!)
+glm::vec3 cam_up = glm::vec3(0, 1, 0); //up defines where the top of the camera is directing towards
+
+//model settings
+glm::mat4 model = glm::mat4(1.0f); //to apply scalor and rotational transformations
+glm::vec3 modl_move = glm::vec3(0, 0, 0); //to apply translational transformations
+
+//color settings
+bool flag = false;
+bool lights = false;
+bool normalcol = false;
+bool greyscale = false;
+bool red = false;
+bool green = false;
+bool blue = false;
+bool colour = false;
+glm::vec3 object_color = glm::vec3(0.5, 0.5, 0.5);
 
 enum test_enum {
 	Item1,
@@ -149,13 +161,13 @@ int main() {
 	gui->addVariable("Model Name", modelName);
 	gui->addButton("Reload model", []() {
 		// Loads inputted model
-		std::string pathName = "resources/objects/" + modelName;
-		load_model(pathName.c_str());
-		resetCameraVariables();
+		//std::string pathName = "resources/objects/" + modelName;
+		//load_model(pathName.c_str());
+		//resetCameraVariables();
 		});
 	gui->addButton("Reset Camera", []() {
 		// Resets all variables to base values.
-		resetCameraVariables();
+		/*resetCameraVariables();*/
 		});
 
 	// Second nanogui gui
@@ -191,15 +203,8 @@ int main() {
 	// Sets size of points when rendering as points
 	glEnable(GL_PROGRAM_POINT_SIZE);
 	glPointSize(2.0);
-	// build and compile our shader program
-	Shader modelShader("shader.vs", "shader.fs");
-	Shader pLightShader("lighting.vs", "lighting.fs");
-	model = new Model();
-	// Configure the VAO and VBO
-	glGenVertexArrays(1, &objVAO);
-	glGenBuffers(1, &VBO);
 
-	load_model("resources/objects/cyborg.obj");
+
 
 	// Game Loop
 	while (!glfwWindowShouldClose(window)) {
@@ -215,64 +220,15 @@ int main() {
 		glEnable(GL_CULL_FACE);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		positionalLightRadius = model->maxY * 1.25;
-		if (pLightRotateX) {
-			positionalLightAngleX += M_PI / 1600;
-		}
-		if (pLightRotateY) {
-			positionalLightAngleY += M_PI / 1600;
-		}
-		if (pLightRotateZ) {
-			positionalLightAngleZ += M_PI / 1600;
-		}
-		float lightPosX = (sin(positionalLightAngleX) + cos(positionalLightAngleY) - 1) * positionalLightRadius;
-		float lightPosY = (sin(positionalLightAngleZ) + cos(positionalLightAngleX) - 1) * positionalLightRadius;
-		float lightPosZ = (sin(positionalLightAngleY) + cos(positionalLightAngleZ) - 1) * positionalLightRadius;
-		positonalLight = glm::vec3((model->maxX + model->minX) / 2 + lightPosX, (model->maxY + model->minY) / 2 + lightPosY, model->maxZ + 1 + lightPosZ); //Sets point light position
 
 		// Activates shaders and sets all uniforms
-		modelShader.use();
-		if (shadingType == 0) {
-			modelShader.setBool("applySmoothing", false);
-		}
-		else if (shadingType == 1) {
-			modelShader.setBool("applySmoothing", true);
-		}
+		//if (shadingType == 0) {
+		//	modelShader.setBool("applySmoothing", false);
+		//}
+		//else if (shadingType == 1) {
+		//	modelShader.setBool("applySmoothing", true);
+		//}
 
-		modelShader.setVec3("objectColor", modelColor.r(), modelColor.g(), modelColor.b());
-		modelShader.setInt("objectShine", modelShine);
-		modelShader.setVec3("viewPos", camera.Position);
-
-		if (positionalLightStatus) {
-			modelShader.setVec3("pointLight.position", positonalLight);
-			modelShader.setVec3("pointLight.ambientLightColor", positionalLightAmbientColor.r(), positionalLightAmbientColor.g(), positionalLightAmbientColor.b());
-			modelShader.setVec3("pointLight.diffuseLightColor", positionalLightDiffuseColor.r(), positionalLightDiffuseColor.g(), positionalLightDiffuseColor.b());
-			modelShader.setVec3("pointLight.specularLightColor", positionalLightSpecularColor.r(), positionalLightSpecularColor.g(), positionalLightSpecularColor.b());
-		}
-		else {
-			modelShader.setVec3("pointLight.ambientLightColor", 0, 0, 0);
-			modelShader.setVec3("pointLight.diffuseLightColor", 0, 0, 0);
-			modelShader.setVec3("pointLight.specularLightColor", 0, 0, 0);
-		}
-		if (directionalLightStatus) {
-			modelShader.setVec3("dirLight.direction", directionalLight);
-			modelShader.setVec3("dirLight.ambientLightColor", directionalLightAmbientColor.r(), directionalLightAmbientColor.g(), directionalLightAmbientColor.b());
-			modelShader.setVec3("dirLight.diffuseLightColor", directionalLightDiffuseColor.r(), directionalLightDiffuseColor.g(), directionalLightDiffuseColor.b());
-			modelShader.setVec3("dirLight.specularLightColor", directionalLightSpecularColor.r(), directionalLightSpecularColor.g(), directionalLightSpecularColor.b());
-		}
-		else {
-			modelShader.setVec3("dirLight.ambientLightColor", 0, 0, 0);
-			modelShader.setVec3("dirLight.diffuseLightColor", 0, 0, 0);
-			modelShader.setVec3("dirLight.specularLightColor", 0, 0, 0);
-		}
-
-		//Apply camera translation and rotation.
-		camera.TranslateCamera(cameraX, cameraY, cameraZ);
-		camera.RotateCamera(cameraYaw, cameraPitch, cameraRoll);
-		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, zNear, zFar);
-		glm::mat4 view = camera.GetViewMatrix();
-		modelShader.setMat4("projection", projection);
-		modelShader.setMat4("view", view);
 
 		// Sets culling mode for model
 		if (cullingType == 0) {
@@ -296,23 +252,15 @@ int main() {
 			std::cout << "Invalid render mode" << std::endl;
 		}
 
-		glBindVertexArray(objVAO); //Binds VAO
-		glm::mat4 modelObj = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-		modelObj = glm::translate(modelObj, glm::vec3(0.0f, 0.0f, 0.0f));
-		modelShader.setMatrix("model", modelObj);
 
 		// Sets render mode
-		if (renderType == 0) {
-			glDrawArrays(GL_POINTS, 0, model->vertices.size()); // Render as points
-		}
-		else {
-			glDrawArrays(GL_TRIANGLES, 0, model->vertices.size()); // Render as lines
-		}
+		//if (renderType == 0) {
+		//	glDrawArrays(GL_POINTS, 0, model->vertices.size()); // Render as points
+		//}
+		//else {
+		//	glDrawArrays(GL_TRIANGLES, 0, model->vertices.size()); // Render as lines
+		//}
 
-		// Render's the light.
-		pLightShader.use();
-		pLightShader.setMat4("projection", projection);
-		pLightShader.setMat4("view", view);
 
 		// Draws GUI
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -325,44 +273,13 @@ int main() {
 	}
 
 	// Clean up remaining resources
-	glDeleteVertexArrays(1, &objVAO);
-	glDeleteBuffers(1, &VBO);
+	//glDeleteVertexArrays(1, &objVAO);
+	//glDeleteBuffers(1, &VBO);
 	glfwTerminate();
 	return 0;
 }
 
-void load_model(const char* pathName) {
-	model->loadObj(pathName);
-	camera.setNewOrigin((model->maxX + model->minX) / 2, (model->maxY + model->minY) / 2, 6);
-	// Binds Vertex Array Object first
-	glBindVertexArray(objVAO);
 
-	// Binds and sets vertex buffers
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, model->vertices.size() * sizeof(Model::Vertex), &(model->vertices.front()), GL_STATIC_DRAW);
-
-	// Configures vertex attributess
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Model::Vertex), (GLvoid*)offsetof(Model::Vertex, Position));
-	glEnableVertexAttribArray(0);
-
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Model::Vertex), (GLvoid*)offsetof(Model::Vertex, Position));
-	glEnableVertexAttribArray(1);
-
-	// Unbind
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-}
-
-void resetCameraVariables() {
-	cameraX = 0.0f;
-	cameraY = 0.0f;
-	cameraZ = 0.0f;
-	cameraYaw = -90;
-	cameraPitch = 0;
-	cameraRoll = 0;
-	zNear = 0.4f;
-	zFar = 15.0f;
-}
 
 // Callbacks listen for inputs.
 void key_callback(GLFWwindow*, int key, int scancode, int action, int mods) {

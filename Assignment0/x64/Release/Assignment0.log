@@ -1,17 +1,8 @@
 ﻿  main.cpp
-C:\Users\saran\Documents\Assignment0\Assignment0\main.cpp(218,39): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\saran\Documents\Assignment0\Assignment0\main.cpp(220,40): warning C4305: '+=': truncation from 'double' to 'float'
-C:\Users\saran\Documents\Assignment0\Assignment0\main.cpp(223,40): warning C4305: '+=': truncation from 'double' to 'float'
-C:\Users\saran\Documents\Assignment0\Assignment0\main.cpp(226,40): warning C4305: '+=': truncation from 'double' to 'float'
-C:\Users\saran\Documents\Assignment0\Assignment0\main.cpp(271,47): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\saran\Documents\Assignment0\Assignment0\main.cpp(271,34): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\saran\Documents\Assignment0\Assignment0\main.cpp(271,23): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\saran\Documents\Assignment0\Assignment0\main.cpp(306,53): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-C:\Users\saran\Documents\Assignment0\Assignment0\main.cpp(309,56): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
 LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
-  79 of 2031 functions ( 3.9%) were compiled, the rest were copied from previous compilation.
-    70 functions were new in current compilation
+  1 of 1775 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
     0 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
 glew32s.lib(glew.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'glew32s.lib(glew.obj)' or at 'C:\Users\saran\Documents\Assignment0\x64\Release\vc120.pdb'; linking object as if no debug info

@@ -25,7 +25,9 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="objloaderIndex.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="shaderloader.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="shader.fs" />
