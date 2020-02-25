@@ -15,15 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Model.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="objloaderIndex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -33,9 +24,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -48,9 +36,5 @@
     <Object Include="resources\objects\cyborg.obj" />
     <Object Include="resources\objects\rock.obj" />
     <Object Include="resources\objects\two_cubes.obj" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="lighting.fs" />
-    <None Include="lighting.vs" />
   </ItemGroup>
 </Project>

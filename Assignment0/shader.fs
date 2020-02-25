@@ -1,79 +1,164 @@
 #version 330 core
-out vec4 FragColor;
 
-struct DirLight {
-    vec3 direction;
+out vec4 result_color;
 
-    vec3 ambientLightColor;
-    vec3 diffuseLightColor;
-    vec3 specularLightColor;
-};
+uniform vec3 light_color;
+uniform vec3 light_position;
+uniform vec3 object_color;
+uniform vec3 view_position;
+uniform bool colour;
+uniform bool flag;
+uniform bool lights;
+uniform bool normalcol;
+uniform bool greyscale;
+uniform bool red;
+uniform bool blue;
+uniform bool green;
 
-struct PointLight {
-    vec3 position;
+in vec3 fragment_position; //interpolated
+in vec3 normal;
 
-    vec3 ambientLightColor;
-    vec3 diffuseLightColor;
-    vec3 specularLightColor;
-};
-
-flat in vec3 fFragPos;
-flat in vec3 fNormal;
-smooth in vec3 sFragPos;
-smooth in vec3 sNormal;
-
-uniform bool applySmoothing;
-
-uniform vec3 viewPos;
-uniform vec3 objectColor;
-uniform int objectShine;
-uniform DirLight dirLight;
-uniform PointLight pointLight;
-
-vec3 CalculateDirectionalLight(DirLight light, vec3 normal, vec3 viewDir);
-vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
+flat in vec3 col;
 
 void main()
 {
-    if(applySmoothing){
-        vec3 norm = normalize(sNormal);
-        vec3 viewDir = normalize(-sFragPos);
-        vec3 result = (CalculateDirectionalLight(dirLight, norm, viewDir) +  CalcPointLight(pointLight, norm, sFragPos, viewDir)) * objectColor;
-        FragColor = vec4(result, 1.0);
-	}else{
-        vec3 norm = normalize(fNormal);
-        vec3 viewDir = normalize(-fFragPos);
-        vec3 result = (CalculateDirectionalLight(dirLight, norm, viewDir) +  CalcPointLight(pointLight, norm, fFragPos, viewDir)) * objectColor;
-        FragColor = vec4(result, 1.0);
+
+	//ambient
+	float ambient_strength = 0.25f;
+	vec3 ambient = ambient_strength * light_color;
+
+	//diffuse
+	vec3 light_direction = normalize(light_position - fragment_position);
+	float diffuse_strength = 0.75f;  //use max so that it doesn't go negative
+	vec3 diffuse = diffuse_strength * max(dot(normalize(normal), light_direction), 0.0) * light_color ;
+
+	//Specular
+	vec3 view_direction = normalize(view_position - fragment_position);
+	vec3 reflect_light_direction = reflect(-light_direction, normalize(normal));
+	float specular_strength = 1.0f;
+	vec3 specular = specular_strength * pow(max(dot(reflect_light_direction, view_direction), 0.0), 32) * light_color ;
+	
+	vec3 color = (specular + diffuse + ambient) * object_color;
+	
+	if (red == true) {
+		if (color.x != ((specular + diffuse + ambient) * object_color).x) {
+			color.x = ((specular + diffuse + ambient) * object_color).x;
+		}
+		else 
+			color.x = 0;
 	}
-}
 
-vec3 CalculateDirectionalLight(DirLight light, vec3 normal, vec3 viewDir)
-{
-    vec3 lightDir = normalize(-light.direction);
-    // diffuse shading
-    float diff = max(dot(normal, lightDir), 0.0);
-    // specular shading
-    vec3 halfwayDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(normal, halfwayDir), 0.0), objectShine);
-    // combine results
-    vec3 ambient = 0.1 * light.ambientLightColor;
-    vec3 diffuse = diff * light.diffuseLightColor;
-    vec3 specular = 0.5 * spec * light.specularLightColor;
-    return (ambient + diffuse + specular);
-}
+	if (green == true) {
+		if (color.y != ((specular + diffuse + ambient) * object_color).y) {
+			color.y = ((specular + diffuse + ambient) * object_color).y;
+		}
+		else
+			color.y = 0;
+	}
 
-vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
-{
-    vec3 lightDir = normalize(light.position - fragPos);
-    // diffuse shading
-    float diff = max(dot(normal, lightDir), 0.0);
-    // specular shading
-    vec3 halfwayDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(normal, halfwayDir), 0.0), objectShine);
-    // combine results
-    vec3 ambient = 0.1 * light.ambientLightColor;
-    vec3 diffuse = diff * light.diffuseLightColor;
-    vec3 specular = 0.5 * spec * light.specularLightColor;
-    return (ambient + diffuse + specular);
-}
+	if (blue == true) {
+		if (color.z != ((specular + diffuse + ambient) * object_color).z) {
+			color.z = ((specular + diffuse + ambient) * object_color).z;
+		}
+		else
+			color.z = 0;
+	}
+
+	if (colour == true) {
+		if (color != (specular + diffuse + ambient) * object_color) {
+			color = (specular + diffuse + ambient) * object_color;
+		}
+	}
+
+	//Gouraud
+	if (flag == true) {
+		if (normalcol == true) {
+			if (greyscale == true) {
+				float grey = dot(col, vec3(0.2989, 0.5870, 0.1140));
+				result_color = vec4(grey, grey, grey, 1.0f);
+			}
+			else
+				result_color = vec4(col, 1.0f);
+		}
+		else {
+			if (greyscale == true) {
+				float grey = dot(col, vec3(0.2989, 0.5870, 0.1140));
+				result_color = vec4(grey, grey, grey, 1.0f);
+			}
+			else 
+				result_color = vec4(col, 1.0f);
+		}
+	}
+
+	//Phong
+	else {
+		//Without Lighting
+		if (lights == true) {
+			color = ambient * object_color;
+			if (red == true) {
+				if (color.x != (ambient * object_color).x) {
+					color.x = (ambient * object_color).x;
+				}
+				else
+					color.x = 0;
+			}
+
+			if (green == true) {
+				if (color.y != (ambient * object_color).y) {
+					color.y = (ambient * object_color).y;
+				}
+				else
+					color.y = 0;
+			}
+
+			if (blue == true) {
+				if (color.z != (ambient * object_color).z) {
+					color.z = (ambient * object_color).z;
+				}
+				else
+					color.z = 0;
+			}
+
+			if (normalcol == true) {
+				color = normal;
+				if (greyscale == true) {
+					float grey = dot(color, vec3(0.2989, 0.5870, 0.1140));
+					result_color = vec4(grey, grey, grey, 1.0f);
+				}
+				else
+					result_color = vec4(color, 1.0f);
+			}
+			else {
+				if (greyscale == true) {
+					float grey = dot(color, vec3(0.2989, 0.5870, 0.1140));
+					result_color = vec4(grey, grey, grey, 1.0f);
+				}
+				else {
+					
+					result_color = vec4(color, 1.0f);
+				}
+			}
+		}
+		//With Lighting
+		else {
+			if (normalcol == true) {
+				color = (specular + diffuse + ambient) * normal;
+				if (greyscale == true) {
+					float grey = dot(color, vec3(0.2989, 0.5870, 0.1140));
+					result_color = vec4(grey, grey, grey, 1.0f);
+				}
+				else
+					result_color = vec4(color, 1.0f);
+			}
+			else {
+				if (greyscale == true) {
+					float grey = dot(color, vec3(0.2989, 0.5870, 0.1140));
+					result_color = vec4(grey, grey, grey, 1.0f);
+				}
+				else {
+					result_color = vec4(color, 1.0f);
+				}
+			}
+		}
+	}
+} 

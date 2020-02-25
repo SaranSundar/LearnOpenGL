@@ -1,10 +1,11 @@
-#include <stdio.h>
+#ifndef SHADERLOADER_H
+#define SHADERLOADER_H
+
+#include <glm/glm.hpp>
 #include <string>
-#include <vector>
-#include <iostream>
 #include <fstream>
 #include <sstream>
-using namespace std;
+#include <iostream>
 
 int loadSHADER(const char* vertex_file_path, const char* fragment_file_path) {
 
@@ -94,3 +95,5 @@ int loadSHADER(const char* vertex_file_path, const char* fragment_file_path) {
 
 	return ProgramID;
 }
+
+#endif

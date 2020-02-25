@@ -1,8 +1,11 @@
-#include <cstring>
-#include <vector>
+#ifndef OBJLOADERINDEX_H
+#define OBJLOADERINDEX_H
+
 #include <string>
-#include <stdlib.h>
-#include "glm/glm.hpp"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <vector>
 
 bool loadOBJ(
 	const char* path,
@@ -121,3 +124,5 @@ bool loadOBJ(
 
 	return true;
 }
+
+#endif

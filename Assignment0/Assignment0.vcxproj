@@ -20,13 +20,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Model.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="Model.h" />
     <ClInclude Include="objloaderIndex.h" />
-    <ClInclude Include="Shader.h" />
     <ClInclude Include="shaderloader.h" />
   </ItemGroup>
   <ItemGroup>
@@ -46,10 +42,6 @@
     <Object Include="resources\objects\two_cubes.obj">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </Object>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="lighting.fs" />
-    <None Include="lighting.vs" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

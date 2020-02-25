@@ -6,13 +6,13 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include "nanogui/nanogui.h"
-#include <stb_image.h>
+#include "shaderloader.h"
+#include "objloaderindex.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "Shader.h"
-#include "Model.h"
-#include "Camera.h"
+#include <glm/gtx/transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_cursor_callback(GLFWwindow* window, double xpos, double ypos);
@@ -57,29 +57,6 @@ bool pLightRotateX = false;
 bool pLightRotateY = false;
 bool pLightRotateZ = false;
 
-
-
-//camera settings
-glm::vec3 cam_pos = glm::vec3(0, 2, 6);
-glm::vec3 cam_dir = glm::vec3(0, 0, -1); //direction means what the camera is looking at
-glm::vec3 temp_cam_dir = glm::vec3(0, 0, 1); //use this for the cross product or else when cam_dir and cam_up overlap, the cross product will be 0 (bad!)
-glm::vec3 cam_up = glm::vec3(0, 1, 0); //up defines where the top of the camera is directing towards
-
-//model settings
-glm::mat4 model = glm::mat4(1.0f); //to apply scalor and rotational transformations
-glm::vec3 modl_move = glm::vec3(0, 0, 0); //to apply translational transformations
-
-//color settings
-bool flag = false;
-bool lights = false;
-bool normalcol = false;
-bool greyscale = false;
-bool red = false;
-bool green = false;
-bool blue = false;
-bool colour = false;
-glm::vec3 object_color = glm::vec3(0.5, 0.5, 0.5);
-
 enum test_enum {
 	Item1,
 	Item2,
@@ -91,12 +68,17 @@ test_enum depthType = test_enum::Item2;
 test_enum cullingType = test_enum::Item2;
 
 std::string modelName = "cyborg.obj";
-
 Screen* screen = nullptr;
 
-// Lighting
-glm::vec3 positonalLight(1.2f, 1.0f, 2.0f);
-glm::vec3 directionalLight(0.0f, -1.0f, -1.0f);
+//camera settings
+glm::vec3 cam_pos = glm::vec3(0, 2, 6);
+glm::vec3 cam_dir = glm::vec3(0, 0, -1); //direction means what the camera is looking at
+glm::vec3 temp_cam_dir = glm::vec3(0, 0, 1); //use this for the cross product or else when cam_dir and cam_up overlap, the cross product will be 0 (bad!)
+glm::vec3 cam_up = glm::vec3(0, 1, 0); //up defines where the top of the camera is directing towards
+
+//model settings
+glm::mat4 model = glm::mat4(1.0f); //to apply scalor and rotational transformations
+glm::vec3 modl_move = glm::vec3(0, 0, 0); //to apply translational transformations
 
 int main() {
 	// Initialize GLFW to version 3.3
@@ -203,6 +185,76 @@ int main() {
 	// Sets size of points when rendering as points
 	glEnable(GL_PROGRAM_POINT_SIZE);
 	glPointSize(2.0);
+
+	// Build and compile our shader program
+	// Vertex shader
+
+	//GLuint shader = loadSHADER("shader.vs", "shader.fs");
+	//glUseProgram(shader);
+
+	//std::vector<int> indices;
+	//std::vector<glm::vec3> vertices;
+	//std::vector<glm::vec3> normals;
+	//std::vector<glm::vec2> UVs;
+	////loadOBJ("heracles.obj", vertices, normals, UVs); //read the vertices from the hercales.obj file
+	//loadOBJ("cyborg.obj", indices, vertices, normals, UVs);
+
+	//GLuint VAO;
+	//glGenVertexArrays(1, &VAO);
+	//// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
+	//glBindVertexArray(VAO); //if you take this off nothing will show up because you haven't linked the VAO to the VBO
+	//						//you have to bind before putting the point
+
+	//GLuint vertices_VBO;
+	//glGenBuffers(1, &vertices_VBO);
+	//glBindBuffer(GL_ARRAY_BUFFER, vertices_VBO);
+	//glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices.front(), GL_STATIC_DRAW);
+	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);  //3*sizeof(GLfloat) is the offset of 3 float numbers
+	//glEnableVertexAttribArray(0);
+
+	//GLuint normals_VBO;
+	//glGenBuffers(1, &normals_VBO);
+	//glBindBuffer(GL_ARRAY_BUFFER, normals_VBO);
+	//glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals.front(), GL_STATIC_DRAW);
+	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);  //3*sizeof(GLfloat) is the offset of 3 float numbers
+	//glEnableVertexAttribArray(1);
+
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	//GLuint EBO;
+	//glGenBuffers(1, &EBO);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(int), &indices.front(), GL_STATIC_DRAW);
+
+	//glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
+
+	////glm is a math funtion
+	//glm::mat4 modl_matrix = glm::translate(glm::mat4(1.f), glm::vec3(3, 0, 0));
+	//glm::mat4 view_matrix = glm::lookAt(cam_pos, cam_dir, cam_up);
+	//glm::mat4 proj_matrix = glm::perspective(glm::radians(45.f), 1.f, 0.1f, 200.f); //perspective view. Third parameter should be > 0, or else errors
+	//glEnable(GL_DEPTH_TEST); //remove surfaces beyond the cameras render distance
+
+	//GLuint vm_loc = glGetUniformLocation(shader, "vm");
+	//GLuint pm_loc = glGetUniformLocation(shader, "pm");
+	//GLuint mm_loc = glGetUniformLocation(shader, "mm");
+	//GLuint flag_id = glGetUniformLocation(shader, "flag");
+	//GLuint lights_id = glGetUniformLocation(shader, "lights");
+	//GLuint normalcol_id = glGetUniformLocation(shader, "normalcol");
+	//GLuint greyscale_id = glGetUniformLocation(shader, "greyscale");
+	//GLuint red_id = glGetUniformLocation(shader, "red");
+	//GLuint green_id = glGetUniformLocation(shader, "green");
+	//GLuint blue_id = glGetUniformLocation(shader, "blue");
+	//GLuint colour_id = glGetUniformLocation(shader, "colour");
+
+	////glUniformMatrix4fv(vm_loc, 1, GL_FALSE, &view_matrix[0][0]); OR
+	//glUniformMatrix4fv(vm_loc, 1, GL_FALSE, glm::value_ptr(view_matrix));
+	//glUniformMatrix4fv(pm_loc, 1, GL_FALSE, glm::value_ptr(proj_matrix));
+	//glUniformMatrix4fv(mm_loc, 1, GL_FALSE, glm::value_ptr(modl_matrix));
+
+	//glUniform3fv(glGetUniformLocation(shader, "light_color"), 1, glm::value_ptr(glm::vec3(0.8, 0.8, 0.8)));
+	//glUniform3fv(glGetUniformLocation(shader, "light_position"), 1, glm::value_ptr(glm::vec3(0.0, 20.0, 5.0)));
+	//glUniform3fv(glGetUniformLocation(shader, "object_color"), 1, glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
+	//glUniform3fv(glGetUniformLocation(shader, "view_position"), 1, glm::value_ptr(glm::vec3(cam_pos)));
 
 
 
