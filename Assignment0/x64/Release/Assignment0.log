@@ -1,9 +1,11 @@
 ﻿  main.cpp
+C:\Users\saran\Documents\Assignment0\Assignment0\main.cpp(377,64): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\saran\Documents\Assignment0\Assignment0\main.cpp(380,67): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
 LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
-  100 of 1771 functions ( 5.6%) were compiled, the rest were copied from previous compilation.
-    62 functions were new in current compilation
-    195 functions had inline decision re-evaluated but remain unchanged
+  1 of 1980 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
 glew32s.lib(glew.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'glew32s.lib(glew.obj)' or at 'C:\Users\saran\Documents\Assignment0\x64\Release\vc120.pdb'; linking object as if no debug info
   Assignment0.vcxproj -> C:\Users\saran\Documents\Assignment0\x64\Release\Assignment0.exe
