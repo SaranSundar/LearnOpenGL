@@ -14,6 +14,7 @@ uniform bool greyscale;
 uniform bool red;
 uniform bool blue;
 uniform bool green;
+uniform int shinyness;
 
 in vec3 fragment_position; //interpolated
 in vec3 normal;
@@ -36,7 +37,7 @@ void main()
 	vec3 view_direction = normalize(view_position - fragment_position);
 	vec3 reflect_light_direction = reflect(-light_direction, normalize(normal));
 	float specular_strength = 1.0f;
-	vec3 specular = specular_strength * pow(max(dot(reflect_light_direction, view_direction), 0.0), 32) * light_color ;
+	vec3 specular = specular_strength * pow(max(dot(reflect_light_direction, view_direction), 0.0), shinyness) * light_color ;
 	
 	vec3 color = (specular + diffuse + ambient) * object_color;
 	
