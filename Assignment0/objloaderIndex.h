@@ -21,8 +21,7 @@ bool loadOBJ(
 	FILE* file;
 	int _errno = fopen_s(&file, path, "r");
 	if (_errno != 0) {
-		printf("Impossible to open the file ! Are you in the right path ?\n");
-		getchar();
+		printf("Impossible to open the file ! Are you in the right path ?");
 		return false;
 	}
 

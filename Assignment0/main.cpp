@@ -26,6 +26,7 @@ const unsigned int SCREEN_HEIGHT = 900;
 
 // Variables for the GUI
 using namespace nanogui;
+FormHelper* gui = nullptr;
 float translateX = 0.0f;
 float translateY = 0.0f;
 float translateZ = 0.0f;
@@ -94,6 +95,40 @@ bool green = false;
 bool blue = false;
 bool colour = false;
 
+GLuint vertices_VBO;
+GLuint VAO;
+GLuint normals_VBO;
+GLuint EBO;
+
+
+std::vector<int> indices;
+std::vector<glm::vec3> vertices;
+std::vector<glm::vec3> normals;
+std::vector<glm::vec2> UVs;
+
+void resetCamera() {
+
+	translateX = 0.0f;
+	translateY = 0.0f;
+	translateZ = 0.0f;
+	offsetYaw = 0;
+	offsetPitch = 0;
+	offsetRoll = 0;
+	prevYaw = 0;
+	prevPitch = 0;
+	prevRoll = 0;
+	zNear = 0.4f;
+	zFar = 15.0f;
+
+	modl_move.y = 0;
+	modl_move.x = 0;
+	modl_move.z = 0;
+
+	model = model_original;
+	gui->refresh();
+
+}
+
 void recalculateVectors() {
 	modl_move.y = translateY;
 	modl_move.x = translateX;
@@ -111,6 +146,48 @@ void recalculateVectors() {
 	if (offsetRoll != prevRoll) {
 		model = glm::rotate(model, glm::radians(offsetRoll), glm::vec3(0, 1, 0));
 		prevRoll = offsetRoll;
+	}
+}
+
+void reloadModel(const char* pathName) {
+
+	std::vector<int> indices2;
+	std::vector<glm::vec3> vertices2;
+	std::vector<glm::vec3> normals2;
+	std::vector<glm::vec2> UVs2;
+
+	// If this path is wrong it causes nanogui to fail and show a white screen
+	bool isSuccesfull = loadOBJ(pathName, indices2, vertices2, normals2, UVs2);
+
+	if (isSuccesfull) {
+		indices.clear();
+		vertices.clear();
+		normals.clear();
+		UVs.clear();
+		indices = indices2;
+		vertices = vertices2;
+		normals = normals2;
+		UVs = UVs2;
+
+		glBindVertexArray(VAO); //if you take this off nothing will show up because you haven't linked the VAO to the VBO
+								//you have to bind before putting the point
+
+		glBindBuffer(GL_ARRAY_BUFFER, vertices_VBO);
+		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices.front(), GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);  //3*sizeof(GLfloat) is the offset of 3 float numbers
+		glEnableVertexAttribArray(0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, normals_VBO);
+		glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals.front(), GL_STATIC_DRAW);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);  //3*sizeof(GLfloat) is the offset of 3 float numbers
+		glEnableVertexAttribArray(1);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(int), &indices.front(), GL_STATIC_DRAW);
+
+		glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
 	}
 }
 
@@ -158,7 +235,7 @@ int main() {
 
 	// Start of nanogui gui
 	bool enabled = true;
-	FormHelper* gui = new FormHelper(screen);
+	gui = new FormHelper(screen);
 	ref<Window> nanoguiWindow =
 		// First nanogui gui
 		gui->addWindow(Eigen::Vector2i(10, 10), "Control Bar 1");
@@ -182,13 +259,12 @@ int main() {
 	gui->addVariable("Model Name", modelName);
 	gui->addButton("Reload model", []() {
 		// Loads inputted model
-		//std::string pathName = "resources/objects/" + modelName;
-		//load_model(pathName.c_str());
-		//resetCameraVariables();
+		std::string pathName = "resources/objects/" + modelName;
+		reloadModel(pathName.c_str());
+		resetCamera();
 		});
 	gui->addButton("Reset Camera", []() {
-		// Resets all variables to base values.
-		/*resetCameraVariables();*/
+		resetCamera();
 		});
 
 	// Second nanogui gui
@@ -230,27 +306,20 @@ int main() {
 	GLuint shader = loadSHADER("shader.vs", "shader.fs");
 	glUseProgram(shader);
 
-	std::vector<int> indices;
-	std::vector<glm::vec3> vertices;
-	std::vector<glm::vec3> normals;
-	std::vector<glm::vec2> UVs;
 	// If this path is wrong it causes nanogui to fail and show a white screen
 	loadOBJ("resources/objects/cyborg.obj", indices, vertices, normals, UVs);
 
-	GLuint VAO;
 	glGenVertexArrays(1, &VAO);
 	// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
 	glBindVertexArray(VAO); //if you take this off nothing will show up because you haven't linked the VAO to the VBO
 							//you have to bind before putting the point
 
-	GLuint vertices_VBO;
 	glGenBuffers(1, &vertices_VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, vertices_VBO);
 	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices.front(), GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);  //3*sizeof(GLfloat) is the offset of 3 float numbers
 	glEnableVertexAttribArray(0);
 
-	GLuint normals_VBO;
 	glGenBuffers(1, &normals_VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, normals_VBO);
 	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals.front(), GL_STATIC_DRAW);
@@ -259,7 +328,6 @@ int main() {
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	GLuint EBO;
 	glGenBuffers(1, &EBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(int), &indices.front(), GL_STATIC_DRAW);
@@ -269,7 +337,7 @@ int main() {
 	//glm is a math funtion
 	glm::mat4 modl_matrix = glm::translate(glm::mat4(1.f), glm::vec3(3, 0, 0));
 	glm::mat4 view_matrix = glm::lookAt(cam_pos, cam_dir, cam_up);
-	glm::mat4 proj_matrix = glm::perspective(glm::radians(45.f), 1.f, 0.1f, 200.f); //perspective view. Third parameter should be > 0, or else errors
+	glm::mat4 proj_matrix = glm::perspective(glm::radians(45.f), 1.f, zNear, zFar); //perspective view. Third parameter should be > 0, or else errors
 	glEnable(GL_DEPTH_TEST); //remove surfaces beyond the cameras render distance
 
 	GLuint vm_loc = glGetUniformLocation(shader, "vm");
@@ -419,8 +487,10 @@ int main() {
 	}
 
 	// Clean up remaining resources
-	//glDeleteVertexArrays(1, &objVAO);
-	//glDeleteBuffers(1, &VBO);
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &vertices_VBO);
+	glDeleteBuffers(1, &normals_VBO);
+	glDeleteBuffers(1, &EBO);
 	glfwTerminate();
 	return 0;
 }
