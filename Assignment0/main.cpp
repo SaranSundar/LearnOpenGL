@@ -369,6 +369,7 @@ int main() {
 
 		recalculateVectors();
 
+		proj_matrix = glm::perspective(glm::radians(45.f), 1.f, zNear, zFar);
 		view_matrix = glm::lookAt(cam_pos, cam_pos + cam_dir, cam_up);
 		
 		
