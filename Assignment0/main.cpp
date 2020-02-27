@@ -358,7 +358,7 @@ int main() {
 	glUniformMatrix4fv(mm_loc, 1, GL_FALSE, glm::value_ptr(modl_matrix));
 
 	glUniform3fv(glGetUniformLocation(shader, "light_color"), 1, glm::value_ptr(glm::vec3(0.8, 0.8, 0.8)));
-	glUniform3fv(glGetUniformLocation(shader, "light_position"), 1, glm::value_ptr(glm::vec3(0.0, 20.0, 5.0)));
+	glUniform3fv(glGetUniformLocation(shader, "light_position"), 1, glm::value_ptr(glm::vec3(1.2f, 1.0f, 2.0f)));
 	glUniform3fv(glGetUniformLocation(shader, "object_color"), 1, glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
 	glUniform3fv(glGetUniformLocation(shader, "view_position"), 1, glm::value_ptr(glm::vec3(cam_pos)));
 
@@ -395,6 +395,7 @@ int main() {
 		GLuint colour_id = glGetUniformLocation(shader, "colour");
 		GLuint shinyness = glGetUniformLocation(shader, "shinyness");
 		GLuint isSmooth = glGetUniformLocation(shader, "isSmooth");
+		GLuint isPosLightOn = glGetUniformLocation(shader, "isPosLightOn");
 
 		//glUniformMatrix4fv(vm_loc, 1, GL_FALSE, &view_matrix[0][0]); OR
 		glUniformMatrix4fv(vm_loc, 1, GL_FALSE, glm::value_ptr(view_matrix));
@@ -402,15 +403,11 @@ int main() {
 		glUniformMatrix4fv(mm_loc, 1, GL_FALSE, glm::value_ptr(modl_matrix));
 
 		glUniform1i(shinyness, modelShine);
-		if (shadingType == 0) {
-			glUniform1i(isSmooth, (int)false);
-		}
-		else if (shadingType == 1) {
-			glUniform1i(isSmooth, (int)true);
-		}
+		glUniform1i(isSmooth, (int)shadingType);
+		glUniform1i(isPosLightOn, (int)positionalLightStatus);
 
 		glUniform3fv(glGetUniformLocation(shader, "light_color"), 1, glm::value_ptr(glm::vec3(0.8, 0.8, 0.8)));
-		glUniform3fv(glGetUniformLocation(shader, "light_position"), 1, glm::value_ptr(glm::vec3(0.0, 20.0, 5.0)));
+		glUniform3fv(glGetUniformLocation(shader, "light_position"), 1, glm::value_ptr(glm::vec3(1.2f, 1.0f, 2.0f)));
 		glUniform3fv(glGetUniformLocation(shader, "object_color"), 1, glm::value_ptr(glm::vec3(modelColor.r(), modelColor.g(), modelColor.b())));
 		glUniform3fv(glGetUniformLocation(shader, "view_position"), 1, glm::value_ptr(glm::vec3(cam_pos)));
 

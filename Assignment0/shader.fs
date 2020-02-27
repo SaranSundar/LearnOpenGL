@@ -16,6 +16,7 @@ uniform bool blue;
 uniform bool green;
 uniform int shinyness;
 uniform bool isSmooth;
+uniform bool isPosLightOn;
 
 flat in vec3 fragment_position; //interpolated
 flat in vec3 normal;
@@ -25,20 +26,24 @@ smooth in vec3 normalS;
 
 flat in vec3 col;
 
-void calculateSmooth();
-void calculateFlat();
+void calculateSmooth(vec3);
+void calculateFlat(vec3);
 
 void main()
 {
+	vec3 lightColor = light_color;
+	if(!isPosLightOn){
+		lightColor = vec3(0, 0, 0);
+	}
 	if(isSmooth){
-		calculateSmooth();
+		calculateSmooth(lightColor);
 	}
 	else{
-		calculateFlat();
+		calculateFlat(lightColor);
 	}
 } 
 
-void calculateSmooth(){
+void calculateSmooth(vec3 light_color){
 	//ambient
 	float ambient_strength = 0.25f;
 	vec3 ambient = ambient_strength * light_color;
@@ -180,7 +185,7 @@ void calculateSmooth(){
 }
 
 
-void calculateFlat(){
+void calculateFlat(vec3 light_color){
 	//ambient
 	float ambient_strength = 0.25f;
 	vec3 ambient = ambient_strength * light_color;
