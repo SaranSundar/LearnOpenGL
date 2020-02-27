@@ -397,6 +397,10 @@ int main() {
 		GLuint isSmooth = glGetUniformLocation(shader, "isSmooth");
 		GLuint isPosLightOn = glGetUniformLocation(shader, "isPosLightOn");
 
+		GLuint posAmbientLightColor = glGetUniformLocation(shader, "posAmbientLightColor");
+		GLuint posDiffuseLightColor = glGetUniformLocation(shader, "posDiffuseLightColor");
+		GLuint posSpecularLightColor = glGetUniformLocation(shader, "posSpecularLightColor");
+
 		//glUniformMatrix4fv(vm_loc, 1, GL_FALSE, &view_matrix[0][0]); OR
 		glUniformMatrix4fv(vm_loc, 1, GL_FALSE, glm::value_ptr(view_matrix));
 		glUniformMatrix4fv(pm_loc, 1, GL_FALSE, glm::value_ptr(proj_matrix));
@@ -405,6 +409,13 @@ int main() {
 		glUniform1i(shinyness, modelShine);
 		glUniform1i(isSmooth, (int)shadingType);
 		glUniform1i(isPosLightOn, (int)positionalLightStatus);
+		glUniform3fv(posAmbientLightColor, 1, glm::value_ptr(glm::vec3(positionalLightAmbientColor.r(), positionalLightAmbientColor.g(), positionalLightAmbientColor.b())));
+		glUniform3fv(posDiffuseLightColor, 1, glm::value_ptr(glm::vec3(positionalLightDiffuseColor.r(), positionalLightDiffuseColor.g(), positionalLightDiffuseColor.b())));
+		glUniform3fv(posSpecularLightColor, 1, glm::value_ptr(glm::vec3(positionalLightSpecularColor.r(), positionalLightSpecularColor.g(), positionalLightSpecularColor.b())));
+		
+		
+		glUniform3fv(glGetUniformLocation(shader, "view_position"), 1, glm::value_ptr(glm::vec3(cam_pos)));
+		glUniform3fv(glGetUniformLocation(shader, "view_position"), 1, glm::value_ptr(glm::vec3(cam_pos)));
 
 		glUniform3fv(glGetUniformLocation(shader, "light_color"), 1, glm::value_ptr(glm::vec3(0.8, 0.8, 0.8)));
 		glUniform3fv(glGetUniformLocation(shader, "light_position"), 1, glm::value_ptr(glm::vec3(1.2f, 1.0f, 2.0f)));

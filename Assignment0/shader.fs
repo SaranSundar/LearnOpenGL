@@ -18,6 +18,10 @@ uniform int shinyness;
 uniform bool isSmooth;
 uniform bool isPosLightOn;
 
+uniform vec3 posAmbientLightColor;
+uniform vec3 posDiffuseLightColor;
+uniform vec3 posSpecularLightColor;
+
 flat in vec3 fragment_position; //interpolated
 flat in vec3 normal;
 
@@ -46,18 +50,18 @@ void main()
 void calculateSmooth(vec3 light_color){
 	//ambient
 	float ambient_strength = 0.25f;
-	vec3 ambient = ambient_strength * light_color;
+	vec3 ambient = ambient_strength * posAmbientLightColor;
 
 	//diffuse
 	vec3 light_direction = normalize(light_position - fragment_positionS);
 	float diffuse_strength = 0.75f;  //use max so that it doesn't go negative
-	vec3 diffuse = diffuse_strength * max(dot(normalize(normalS), light_direction), 0.0) * light_color ;
+	vec3 diffuse = diffuse_strength * max(dot(normalize(normalS), light_direction), 0.0) * posDiffuseLightColor;
 
 	//Specular
 	vec3 view_direction = normalize(view_position - fragment_positionS);
 	vec3 reflect_light_direction = reflect(-light_direction, normalize(normalS));
 	float specular_strength = 1.0f;
-	vec3 specular = specular_strength * pow(max(dot(reflect_light_direction, view_direction), 0.0), shinyness) * light_color ;
+	vec3 specular = specular_strength * pow(max(dot(reflect_light_direction, view_direction), 0.0), shinyness) * posSpecularLightColor;
 	
 	vec3 color = (specular + diffuse + ambient) * object_color;
 	
@@ -188,18 +192,18 @@ void calculateSmooth(vec3 light_color){
 void calculateFlat(vec3 light_color){
 	//ambient
 	float ambient_strength = 0.25f;
-	vec3 ambient = ambient_strength * light_color;
+	vec3 ambient = ambient_strength * posAmbientLightColor;
 
 	//diffuse
 	vec3 light_direction = normalize(light_position - fragment_position);
 	float diffuse_strength = 0.75f;  //use max so that it doesn't go negative
-	vec3 diffuse = diffuse_strength * max(dot(normalize(normal), light_direction), 0.0) * light_color ;
+	vec3 diffuse = diffuse_strength * max(dot(normalize(normal), light_direction), 0.0) * posDiffuseLightColor;
 
 	//Specular
 	vec3 view_direction = normalize(view_position - fragment_position);
 	vec3 reflect_light_direction = reflect(-light_direction, normalize(normal));
 	float specular_strength = 1.0f;
-	vec3 specular = specular_strength * pow(max(dot(reflect_light_direction, view_direction), 0.0), shinyness) * light_color ;
+	vec3 specular = specular_strength * pow(max(dot(reflect_light_direction, view_direction), 0.0), shinyness) * posSpecularLightColor;
 	
 	vec3 color = (specular + diffuse + ambient) * object_color;
 	
