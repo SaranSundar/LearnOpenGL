@@ -21,15 +21,20 @@ uniform bool red;
 uniform bool green;
 uniform bool blue;
 
-out vec3 fragment_position;
-out vec3 normal;
+flat out vec3 fragment_position;
+flat out vec3 normal;
+
+smooth out vec3 fragment_positionS;
+smooth out vec3 normalS;
 
 flat out vec3 col;
 
 void main()
 {
 	normal = mat3(transpose(inverse(mm))) * normals;
+	normalS = mat3(transpose(inverse(mm))) * normals;
 	fragment_position = vec3(mm * vec4(position, 1.0f));
+	fragment_positionS = vec3(mm * vec4(position, 1.0f));
 	gl_Position = pm * vm * mm * vec4(position, 1.0);
 
 	//ambient

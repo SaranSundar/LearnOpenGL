@@ -394,6 +394,7 @@ int main() {
 		GLuint blue_id = glGetUniformLocation(shader, "blue");
 		GLuint colour_id = glGetUniformLocation(shader, "colour");
 		GLuint shinyness = glGetUniformLocation(shader, "shinyness");
+		GLuint isSmooth = glGetUniformLocation(shader, "isSmooth");
 
 		//glUniformMatrix4fv(vm_loc, 1, GL_FALSE, &view_matrix[0][0]); OR
 		glUniformMatrix4fv(vm_loc, 1, GL_FALSE, glm::value_ptr(view_matrix));
@@ -401,6 +402,12 @@ int main() {
 		glUniformMatrix4fv(mm_loc, 1, GL_FALSE, glm::value_ptr(modl_matrix));
 
 		glUniform1i(shinyness, modelShine);
+		if (shadingType == 0) {
+			glUniform1i(isSmooth, (int)false);
+		}
+		else if (shadingType == 1) {
+			glUniform1i(isSmooth, (int)true);
+		}
 
 		glUniform3fv(glGetUniformLocation(shader, "light_color"), 1, glm::value_ptr(glm::vec3(0.8, 0.8, 0.8)));
 		glUniform3fv(glGetUniformLocation(shader, "light_position"), 1, glm::value_ptr(glm::vec3(0.0, 20.0, 5.0)));
@@ -438,15 +445,6 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-		// Activates shaders and sets all uniforms
-		//if (shadingType == 0) {
-		//	modelShader.setBool("applySmoothing", false);
-		//}
-		//else if (shadingType == 1) {
-		//	modelShader.setBool("applySmoothing", true);
-		//}
-
-
 		// Sets culling mode for model
 		if (cullingType == 0) {
 			glFrontFace(GL_CW); // Renders CW
@@ -457,6 +455,9 @@ int main() {
 
 		// Sets render mode
 		if (renderType == 0) {
+			// Sets size of points when rendering as points
+			glEnable(GL_PROGRAM_POINT_SIZE);
+			glPointSize(10.0);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_POINT); // Render as points
 		}
 		else if (renderType == 1) {
