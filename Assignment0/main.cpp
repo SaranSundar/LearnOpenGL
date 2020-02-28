@@ -276,6 +276,7 @@ int main() {
 	gui->addVariable("Direction Light Ambient Color", directionalLightAmbientColor);
 	gui->addVariable("Direction Light Diffuse Color", directionalLightDiffuseColor);
 	gui->addVariable("Direction Light Specular Color", directionalLightSpecularColor);
+
 	gui->addVariable("Point Light Status", positionalLightStatus);
 	gui->addVariable("Point Light Ambient Color", positionalLightAmbientColor);
 	gui->addVariable("Point Light Diffuse Color", positionalLightDiffuseColor);
@@ -395,11 +396,17 @@ int main() {
 		GLuint colour_id = glGetUniformLocation(shader, "colour");
 		GLuint shinyness = glGetUniformLocation(shader, "shinyness");
 		GLuint isSmooth = glGetUniformLocation(shader, "isSmooth");
-		GLuint isPosLightOn = glGetUniformLocation(shader, "isPosLightOn");
 
+		GLuint isPosLightOn = glGetUniformLocation(shader, "isPosLightOn");
 		GLuint posAmbientLightColor = glGetUniformLocation(shader, "posAmbientLightColor");
 		GLuint posDiffuseLightColor = glGetUniformLocation(shader, "posDiffuseLightColor");
 		GLuint posSpecularLightColor = glGetUniformLocation(shader, "posSpecularLightColor");
+
+		GLuint isDirLightOn = glGetUniformLocation(shader, "isDirLightOn");
+		GLuint dirAmbientLightColor = glGetUniformLocation(shader, "dirLightAmbientColor");
+		GLuint dirDiffuseLightColor = glGetUniformLocation(shader, "dirLightDiffuseColor");
+		GLuint dirSpecularLightColor = glGetUniformLocation(shader, "dirLightSpecularColor");
+		GLuint dirLightDirection = glGetUniformLocation(shader, "dirLightDirection");
 
 		//glUniformMatrix4fv(vm_loc, 1, GL_FALSE, &view_matrix[0][0]); OR
 		glUniformMatrix4fv(vm_loc, 1, GL_FALSE, glm::value_ptr(view_matrix));
@@ -408,16 +415,23 @@ int main() {
 
 		glUniform1i(shinyness, modelShine);
 		glUniform1i(isSmooth, (int)shadingType);
+		
 		glUniform1i(isPosLightOn, (int)positionalLightStatus);
 		glUniform3fv(posAmbientLightColor, 1, glm::value_ptr(glm::vec3(positionalLightAmbientColor.r(), positionalLightAmbientColor.g(), positionalLightAmbientColor.b())));
 		glUniform3fv(posDiffuseLightColor, 1, glm::value_ptr(glm::vec3(positionalLightDiffuseColor.r(), positionalLightDiffuseColor.g(), positionalLightDiffuseColor.b())));
 		glUniform3fv(posSpecularLightColor, 1, glm::value_ptr(glm::vec3(positionalLightSpecularColor.r(), positionalLightSpecularColor.g(), positionalLightSpecularColor.b())));
-		
+
+		glUniform1i(isDirLightOn, (int)directionalLightStatus);
+		glUniform3fv(dirAmbientLightColor, 1, glm::value_ptr(glm::vec3(directionalLightAmbientColor.r(), directionalLightAmbientColor.g(), directionalLightAmbientColor.b())));
+		glUniform3fv(dirDiffuseLightColor, 1, glm::value_ptr(glm::vec3(directionalLightDiffuseColor.r(), directionalLightDiffuseColor.g(), directionalLightDiffuseColor.b())));
+		glUniform3fv(dirSpecularLightColor, 1, glm::value_ptr(glm::vec3(directionalLightSpecularColor.r(), directionalLightSpecularColor.g(), directionalLightSpecularColor.b())));
+		glUniform3fv(dirLightDirection, 1, glm::value_ptr(glm::vec3(0.0f, -1.0f, -1.0f)));
+
 		
 		glUniform3fv(glGetUniformLocation(shader, "view_position"), 1, glm::value_ptr(glm::vec3(cam_pos)));
 		glUniform3fv(glGetUniformLocation(shader, "view_position"), 1, glm::value_ptr(glm::vec3(cam_pos)));
 
-		glUniform3fv(glGetUniformLocation(shader, "light_color"), 1, glm::value_ptr(glm::vec3(0.8, 0.8, 0.8)));
+		glUniform3fv(glGetUniformLocation(shader, "light_color"), 1, glm::value_ptr(glm::vec3(1.0, 1.0, 1.0)));
 		glUniform3fv(glGetUniformLocation(shader, "light_position"), 1, glm::value_ptr(glm::vec3(1.2f, 1.0f, 2.0f)));
 		glUniform3fv(glGetUniformLocation(shader, "object_color"), 1, glm::value_ptr(glm::vec3(modelColor.r(), modelColor.g(), modelColor.b())));
 		glUniform3fv(glGetUniformLocation(shader, "view_position"), 1, glm::value_ptr(glm::vec3(cam_pos)));
