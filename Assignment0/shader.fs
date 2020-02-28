@@ -74,9 +74,9 @@ vec3 calculateDirLight(vec3 light_color, vec3 normal, vec3 viewDir){
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), shinyness);
     // combine results
-    vec3 ambient  = dirLightAmbientColor * 0.1;
-    vec3 diffuse  = dirLightDiffuseColor * diff;
-    vec3 specular = dirLightSpecularColor * spec * 0.5;
+    vec3 ambient  = dirLightAmbientColor * 0.1 * light_color;
+    vec3 diffuse  = dirLightDiffuseColor * diff *  light_color;
+    vec3 specular = dirLightSpecularColor * spec * 0.5 * light_color;
     return (ambient + diffuse + specular);
 }
 
@@ -84,18 +84,18 @@ vec3 calculateDirLight(vec3 light_color, vec3 normal, vec3 viewDir){
 vec3 calculatePosLight(vec3 light_color, vec3 fragment_position, vec3 normal){
 	//ambient
 	float ambient_strength = 0.25f;
-	vec3 ambient = ambient_strength * posAmbientLightColor;
+	vec3 ambient = ambient_strength * posAmbientLightColor * light_color;
 
 	//diffuse
 	vec3 light_direction = normalize(light_position - fragment_position);
 	float diffuse_strength = 0.75f;  //use max so that it doesn't go negative
-	vec3 diffuse = diffuse_strength * max(dot(normalize(normal), light_direction), 0.0) * posDiffuseLightColor;
+	vec3 diffuse = diffuse_strength * max(dot(normalize(normal), light_direction), 0.0) * posDiffuseLightColor * light_color;
 
 	//Specular
 	vec3 view_direction = normalize(view_position - fragment_position);
 	vec3 reflect_light_direction = reflect(-light_direction, normalize(normal));
 	float specular_strength = 1.0f;
-	vec3 specular = specular_strength * pow(max(dot(reflect_light_direction, view_direction), 0.0), shinyness) * posSpecularLightColor;
+	vec3 specular = specular_strength * pow(max(dot(reflect_light_direction, view_direction), 0.0), shinyness) * posSpecularLightColor * light_color;
 	
 	vec3 color = (specular + diffuse + ambient);
 	return color;
