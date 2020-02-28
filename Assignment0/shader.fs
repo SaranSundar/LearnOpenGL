@@ -67,7 +67,7 @@ void main()
 } 
 
 vec3 calculateDirLight(vec3 light_color, vec3 normal, vec3 viewDir){
-	vec3 lightDir = normalize(dirLightDirection);
+	vec3 lightDir = normalize(-dirLightDirection);
     // diffuse shading
     float diff = max(dot(normal, lightDir), 0.0);
     // specular shading

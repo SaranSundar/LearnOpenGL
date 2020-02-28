@@ -54,9 +54,9 @@ Color positionalLightAmbientColor(0.0f, 0.0f, 0.0f, 1.0f);
 Color positionalLightDiffuseColor(0.0f, 0.0f, 0.0f, 1.0f);
 Color positionalLightSpecularColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-Color directionalLightAmbientColor(1.0f, 1.0f, 1.0f, 1.0f);
-Color directionalLightDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-Color directionalLightSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
+Color directionalLightAmbientColor(0.0f, 0.0f, 0.0f, 1.0f);
+Color directionalLightDiffuseColor(0.0f, 0.0f, 0.0f, 1.0f);
+Color directionalLightSpecularColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 bool rotatePositionalLightX = false;
 bool rotatePositionalLightY = false;
@@ -443,7 +443,7 @@ int main() {
 		glUniform3fv(dirAmbientLightColor, 1, glm::value_ptr(glm::vec3(directionalLightAmbientColor.r(), directionalLightAmbientColor.g(), directionalLightAmbientColor.b())));
 		glUniform3fv(dirDiffuseLightColor, 1, glm::value_ptr(glm::vec3(directionalLightDiffuseColor.r(), directionalLightDiffuseColor.g(), directionalLightDiffuseColor.b())));
 		glUniform3fv(dirSpecularLightColor, 1, glm::value_ptr(glm::vec3(directionalLightSpecularColor.r(), directionalLightSpecularColor.g(), directionalLightSpecularColor.b())));
-		glUniform3fv(dirLightDirection, 1, glm::value_ptr(glm::vec3(1.0f, 1.0f, 0.0f)));
+		glUniform3fv(dirLightDirection, 1, glm::value_ptr(glm::vec3(0.0f, -1.0f, -1.0f)));
 
 		
 		glUniform3fv(glGetUniformLocation(shader, "view_position"), 1, glm::value_ptr(glm::vec3(cam_pos)));
