@@ -387,7 +387,7 @@ int main() {
 		mm_loc = glGetUniformLocation(shader, "mm");
 		GLuint flag_id = glGetUniformLocation(shader, "flag");
 		GLuint lights_id = glGetUniformLocation(shader, "lights");
-		GLuint normalcol_id = glGetUniformLocation(shader, "normalcol");
+		GLuint normalcol_id = glGetUniformLocation(shader, "l");
 		GLuint greyscale_id = glGetUniformLocation(shader, "greyscale");
 		GLuint red_id = glGetUniformLocation(shader, "red");
 		GLuint green_id = glGetUniformLocation(shader, "green");
