@@ -38,6 +38,7 @@ float prevPitch = 0;
 float prevRoll = 0;
 float zNear = 0.4f;
 float zFar = 15.0f;
+float rotateValue = 5.0f;
 
 Color modelColor(1.0f, 1.0f, 1.0f, 1.0f);
 int modelShine = 32;
@@ -53,9 +54,9 @@ Color positionalLightAmbientColor(0.0f, 0.0f, 0.0f, 1.0f);
 Color positionalLightDiffuseColor(0.0f, 0.0f, 0.0f, 1.0f);
 Color positionalLightSpecularColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-Color directionalLightAmbientColor(0.0f, 0.0f, 0.0f, 1.0f);
-Color directionalLightDiffuseColor(0.0f, 0.0f, 0.0f, 1.0f);
-Color directionalLightSpecularColor(0.0f, 0.0f, 0.0f, 1.0f);
+Color directionalLightAmbientColor(1.0f, 1.0f, 1.0f, 1.0f);
+Color directionalLightDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+Color directionalLightSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
 
 bool rotatePositionalLightX = false;
 bool rotatePositionalLightY = false;
@@ -134,19 +135,19 @@ void recalculateVectors() {
 	modl_move.x = translateX;
 	modl_move.z = translateZ;
 
-	// Yaw, Pitch, Roll
-	if (offsetYaw != prevYaw) {
-		model = glm::rotate(model, glm::radians(offsetYaw), glm::vec3(1, 0, 0));
-		prevYaw = offsetYaw;
-	}
-	if (offsetPitch != prevPitch) {
-		model = glm::rotate(model, glm::radians(offsetPitch), glm::vec3(0, 0, 1));
-		prevPitch = offsetPitch;
-	}
-	if (offsetRoll != prevRoll) {
-		model = glm::rotate(model, glm::radians(offsetRoll), glm::vec3(0, 1, 0));
-		prevRoll = offsetRoll;
-	}
+	//// Yaw, Pitch, Roll
+	//if (offsetYaw != prevYaw) {
+	//	model = glm::rotate(model, glm::radians(offsetYaw), glm::vec3(1, 0, 0));
+	//	prevYaw = offsetYaw;
+	//}
+	//if (offsetPitch != prevPitch) {
+	//	model = glm::rotate(model, glm::radians(offsetPitch), glm::vec3(0, 0, 1));
+	//	prevPitch = offsetPitch;
+	//}
+	//if (offsetRoll != prevRoll) {
+	//	model = glm::rotate(model, glm::radians(offsetRoll), glm::vec3(0, 1, 0));
+	//	prevRoll = offsetRoll;
+	//}
 }
 
 void reloadModel(const char* pathName) {
@@ -245,9 +246,26 @@ int main() {
 	gui->addVariable("Z", translateZ)->setSpinnable(true);
 
 	gui->addGroup("Camera Rotatation");
-	gui->addVariable("Yaw", offsetYaw)->setSpinnable(true);
-	gui->addVariable("Pitch", offsetPitch)->setSpinnable(true);
-	gui->addVariable("Roll", offsetRoll)->setSpinnable(true);
+	gui->addVariable("Rotate Value", rotateValue)->setSpinnable(true);
+	gui->addButton("Rotate right+", []() {
+		model = glm::rotate(model, glm::radians(-rotateValue), glm::vec3(0, 0, 1));
+		});
+	gui->addButton("Rotate right-", []() {
+		model = glm::rotate(model, glm::radians(rotateValue), glm::vec3(0, 0, 1));
+		});
+	gui->addButton("Rotate up+", []() {
+		model = glm::rotate(model, glm::radians(rotateValue), glm::vec3(1, 0, 0));
+		});
+	gui->addButton("Rotate up-", []() {
+		model = glm::rotate(model, glm::radians(-rotateValue), glm::vec3(1, 0, 0));
+		});
+	gui->addButton("Rotate front+", []() {
+		model = glm::rotate(model, glm::radians(rotateValue), glm::vec3(0, 1, 0));
+		});
+	gui->addButton("Rotate front-", []() {
+		model = glm::rotate(model, glm::radians(-rotateValue), glm::vec3(0, 1, 0));
+		});
+	
 
 	gui->addGroup("Configuration");
 	gui->addVariable("Z Near", zNear)->setSpinnable(true);
@@ -425,7 +443,7 @@ int main() {
 		glUniform3fv(dirAmbientLightColor, 1, glm::value_ptr(glm::vec3(directionalLightAmbientColor.r(), directionalLightAmbientColor.g(), directionalLightAmbientColor.b())));
 		glUniform3fv(dirDiffuseLightColor, 1, glm::value_ptr(glm::vec3(directionalLightDiffuseColor.r(), directionalLightDiffuseColor.g(), directionalLightDiffuseColor.b())));
 		glUniform3fv(dirSpecularLightColor, 1, glm::value_ptr(glm::vec3(directionalLightSpecularColor.r(), directionalLightSpecularColor.g(), directionalLightSpecularColor.b())));
-		glUniform3fv(dirLightDirection, 1, glm::value_ptr(glm::vec3(0.0f, -1.0f, -1.0f)));
+		glUniform3fv(dirLightDirection, 1, glm::value_ptr(glm::vec3(1.0f, 1.0f, 0.0f)));
 
 		
 		glUniform3fv(glGetUniformLocation(shader, "view_position"), 1, glm::value_ptr(glm::vec3(cam_pos)));

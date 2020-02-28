@@ -63,7 +63,7 @@ void main()
 		dirLight = calculateDirLight(dirLightColor, norm, viewDir);
 	}
 
-	result_color = vec4((dirLight) * object_color, 1.0f);
+	result_color = vec4((posLight + dirLight) * object_color, 1.0f);
 } 
 
 vec3 calculateDirLight(vec3 light_color, vec3 normal, vec3 viewDir){
