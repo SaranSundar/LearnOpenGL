@@ -80,6 +80,8 @@ glm::vec3 cam_pos = glm::vec3(0, 2, 6);
 glm::vec3 cam_dir = glm::vec3(0, 0, -1); //direction means what the camera is looking at
 glm::vec3 temp_cam_dir = glm::vec3(0, 0, 1); //use this for the cross product or else when cam_dir and cam_up overlap, the cross product will be 0 (bad!)
 glm::vec3 cam_up = glm::vec3(0, 1, 0); //up defines where the top of the camera is directing towards
+glm::vec3 light_pos = glm::vec3(1.2f, 1.0f, 2.0f); //up defines where the top of the camera is directing towards
+
 
 //model settings
 glm::mat4 model = glm::mat4(1.0f); //to apply scalor and rotational transformations
@@ -377,7 +379,7 @@ int main() {
 	glUniformMatrix4fv(mm_loc, 1, GL_FALSE, glm::value_ptr(modl_matrix));
 
 	glUniform3fv(glGetUniformLocation(shader, "light_color"), 1, glm::value_ptr(glm::vec3(0.8, 0.8, 0.8)));
-	glUniform3fv(glGetUniformLocation(shader, "light_position"), 1, glm::value_ptr(glm::vec3(1.2f, 1.0f, 2.0f)));
+	//glUniform3fv(glGetUniformLocation(shader, "light_position"), 1, glm::value_ptr(glm::vec3(1.2f, 1.0f, 2.0f)));
 	glUniform3fv(glGetUniformLocation(shader, "object_color"), 1, glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
 	glUniform3fv(glGetUniformLocation(shader, "view_position"), 1, glm::value_ptr(glm::vec3(cam_pos)));
 
@@ -450,7 +452,23 @@ int main() {
 		glUniform3fv(glGetUniformLocation(shader, "view_position"), 1, glm::value_ptr(glm::vec3(cam_pos)));
 
 		glUniform3fv(glGetUniformLocation(shader, "light_color"), 1, glm::value_ptr(glm::vec3(1.0, 1.0, 1.0)));
-		glUniform3fv(glGetUniformLocation(shader, "light_position"), 1, glm::value_ptr(glm::vec3(1.2f, 1.0f, 2.0f)));
+
+		if (rotatePositionalLightX) {
+			positionalLightAngleX += M_PI / 100;
+		}
+		if (rotatePositionalLightY) {
+			positionalLightAngleY += M_PI / 100;
+		}
+		if (rotatePositionalLightZ) {
+			positionalLightAngleZ += M_PI / 100;
+		}
+
+	float lightPosX = (sin(positionalLightAngleY) + cos(positionalLightAngleZ) - 1) * 6;
+	float lightPosY = (sin(positionalLightAngleZ) + cos(positionalLightAngleX) - 1) * 6;
+	float lightPosZ = (sin(positionalLightAngleX) + cos(positionalLightAngleY) - 1) * 6;
+
+	glUniform3fv(glGetUniformLocation(shader, "light_position"), 1, glm::value_ptr(glm::vec3(lightPosX, lightPosY + 2, lightPosZ + 6)));
+
 		glUniform3fv(glGetUniformLocation(shader, "object_color"), 1, glm::value_ptr(glm::vec3(modelColor.r(), modelColor.g(), modelColor.b())));
 		glUniform3fv(glGetUniformLocation(shader, "view_position"), 1, glm::value_ptr(glm::vec3(cam_pos)));
 
